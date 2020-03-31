@@ -1,20 +1,12 @@
-package functional
+package com.temp.aggregation.kelvinapi.integration
 
-import com.temp.aggregation.kelvinapi.KelvinApiApplication
-import functional.testClients.HelloWorldClient
+import com.temp.aggregation.kelvinapi.integration.testclients.HelloWorldClient
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.cloud.openfeign.EnableFeignClients
 import org.springframework.http.ResponseEntity
-import org.springframework.test.context.ActiveProfiles
-import spock.lang.Specification
 
 import static org.springframework.http.HttpStatus.OK
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT, classes = KelvinApiApplication.class)
-@ActiveProfiles('integration')
-@EnableFeignClients
-class HelloWorldControllerFunctionalSpec extends Specification {
+class HelloWorldControllerFunctionalSpec extends BaseIntegrationSpec {
     @Autowired
     HelloWorldClient client
 

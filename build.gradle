@@ -2,6 +2,7 @@ plugins {
 	id 'org.springframework.boot' version '2.2.6.RELEASE'
 	id 'io.spring.dependency-management' version '1.0.9.RELEASE'
 	id 'groovy'
+	id 'codenarc'
 }
 
 group = 'com.temp.aggregation'
@@ -13,6 +14,7 @@ repositories {
 }
 
 dependencies {
+	codenarc 'org.codenarc:CodeNarc:1.1'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.codehaus.groovy:groovy-all:2.5.10'
@@ -24,4 +26,15 @@ dependencies {
 
 test {
 	useJUnitPlatform()
+}
+
+codenarc {
+	configFile rootProject.file('gradle/codenarc/codenarc.groovy')
+	if (!System.getenv('GEN_CODENARC_REPORT')) {
+		reportFormat = 'console'
+	}
+}
+
+codenarcTest {
+	configFile rootProject.file('gradle/codenarc/codenarcTest.groovy')
 }
