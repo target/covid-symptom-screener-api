@@ -1,3 +1,7 @@
 spring:
   application:
     name: kelvin-api
+
+feign:
+  app:
+    url: "http://localhost:8080"

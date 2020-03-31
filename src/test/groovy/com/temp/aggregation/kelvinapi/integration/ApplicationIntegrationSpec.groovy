@@ -9,7 +9,7 @@ import org.springframework.core.env.Environment
 import org.springframework.test.context.ActiveProfiles
 import spock.lang.Specification
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = KelvinApiApplication.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT, classes = KelvinApiApplication.class)
 @ActiveProfiles('integration')
 class ApplicationIntegrationSpec extends Specification {
     @LocalServerPort
@@ -23,7 +23,7 @@ class ApplicationIntegrationSpec extends Specification {
 
     void 'got application context'() {
         expect:
-        serverPort != null
+        serverPort != 8080
         env.activeProfiles.toList() == ['integration']
         applicationContext.id == 'kelvin-api'
     }
