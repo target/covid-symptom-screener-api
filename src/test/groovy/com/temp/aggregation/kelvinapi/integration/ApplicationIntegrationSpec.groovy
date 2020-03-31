@@ -23,7 +23,7 @@ class ApplicationIntegrationSpec extends Specification {
 
     void 'got application context'() {
         expect:
-        serverPort != 8080
+        serverPort == 8080
         env.activeProfiles.toList() == ['integration']
         applicationContext.id == 'kelvin-api'
     }
