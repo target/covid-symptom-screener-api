@@ -1,0 +1,11 @@
+version: '2'
+services:
+  postgres-test:
+    image: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: kelvin-db
+      POSTGRES_USER: kelvin_rw
+      POSTGRES_PASSWORD: testing-password
