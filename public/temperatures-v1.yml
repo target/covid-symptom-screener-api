@@ -1,0 +1,427 @@
+
+x-standard-responses: &standard-responses
+  400:
+    description: Request is invalid. See response body for details.
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/error_response'
+  401:
+    description: Correct credentials were not provided.
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/error_response'
+  403:
+    description: This action is forbidden.
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/error_response'
+  500:
+    description: An internal error caused the request to fail. Contact support for help.
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/error_response'
+
+x-get-responses: &get-responses
+  <<: *standard-responses
+  404:
+    description: The resource could not be found at this location.
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/error_response'
+
+x-post-responses: &post-responses
+  <<: *standard-responses
+  409:
+    description: The resource conflicts with an existing resource.
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/error_response'
+
+openapi: 3.0.0
+info:
+  title: temperatures-v1
+  description: API to collect temperatures
+  version: 0.1.0
+servers:
+  - url: https://kelvin.test.com/v1
+    description: Production
+  - url: http://staging-api.example.com
+    description: Staging
+
+tags:
+  - name: Organizations
+    description: Creation and approval of organizations
+  - name: Temperatures
+    description: Ingestion and management of temperatures
+
+paths:
+  /organizations:
+    parameters:
+      - $ref: '#/components/parameters/authorization'
+
+    get:
+      tags:
+        - Organizations
+      summary: List organizations
+      description: Return a list of organizations filtered with different criteria.
+      parameters:
+        -
+          name: approval_status
+          description: Current approval status for this organization
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - APPLIED
+              - APPROVED
+              - SUSPENDED
+        -
+          name: name
+          description: Filter on the name of the organization
+          in: query
+          required: false
+          schema:
+            type: string
+        -
+          name: tax_id
+          description: Match the tax identification number for the org.
+          in: query
+          required: false
+          schema:
+            type: string
+
+      responses:
+        200:
+          description: Returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/organization_list_response'
+        <<: *standard-responses
+
+    post:
+      tags:
+        - Organizations
+      summary: Create an organization
+      description: Creates an organization and returns it.
+      parameters:
+        - $ref: '#/components/parameters/authorization'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/organization'
+      responses:
+        201:
+          description: Created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/organization'
+        <<: *post-responses
+
+  /organizations/{organization_id}:
+    parameters:
+      - $ref: '#/components/parameters/authorization'
+      -
+        in: path
+        name: organization_id
+        required: true
+        schema:
+          type: string
+        description: The user ID
+
+    get:
+      tags:
+        - Organizations
+      summary: Get an organization
+      description: Return a specific organization
+      responses:
+        200:
+          description: Returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/organization'
+        <<: *get-responses
+
+    put:
+      tags:
+        - Organizations
+      summary: Update an organization
+      description: Updates an organization and returns it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/organization'
+      responses:
+        200:
+          description: Returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/organization'
+        <<: *get-responses
+
+    delete:
+      tags:
+        - Organizations
+      summary: Create an organization
+      description: Creates an organization and returns it.
+      responses:
+        204:
+          description: Deleted successfully.
+        <<: *standard-responses
+
+  /temperatures:
+    parameters:
+      - $ref: '#/components/parameters/authorization'
+
+    get:
+      tags:
+        - Temperatures
+      summary: List temperatures
+      description: Lists a set of temperatures
+      parameters:
+        -
+          name: organization_id
+          description: Filter on the id of the organization
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: Returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/temperature_list'
+        <<: *standard-responses
+
+    post:
+      tags:
+        - Temperatures
+      summary: Create a set of temperatures
+      description: Creates a set of temperatures
+      parameters:
+        - $ref: '#/components/parameters/authorization_code'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/temperature_list'
+      responses:
+        201:
+          description: Created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/temperature_post_response'
+        <<: *post-responses
+
+  /temperatures/{temperature_id}:
+    parameters:
+      - $ref: '#/components/parameters/authorization'
+      -
+        in: path
+        name: temperature_id
+        required: true
+        schema:
+          type: string
+        description: The temperature ID
+
+    get:
+      tags:
+        - Temperatures
+      summary: Get a temperature
+      description: Return a specific temperature
+      responses:
+        200:
+          description: Returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/temperature'
+        <<: *get-responses
+
+    delete:
+      tags:
+        - Temperatures
+      summary: Deletes a temperature
+      description: Deletes a specific temperature
+      responses:
+        204:
+          description: Deleted successfully.
+        <<: *get-responses
+
+components:
+  schemas:
+
+    error_response:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Error message
+        errors:
+          type: array
+          description: List of specific errors in this request
+          items:
+            type: string
+            description: Error details
+
+    audited_resource:
+      type: object
+      properties: &audit-fields
+        created:
+          type: string
+          format: date-time
+          description: Date this resource was created
+          readOnly: true
+        created_by:
+          type: string
+          description: ID of user that created this resource
+          readOnly: true
+        last_modified:
+          type: string
+          format: date-time
+          description: Date this resource was last modified
+          readOnly: true
+        last_modified_by:
+          type: string
+          description: ID of last user to modify this resource
+          readOnly: true
+
+    organization:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique ID for the organization
+          readOnly: true
+        authorization_code:
+          type: string
+          description: Generated code that allows for submitting temperatures as this org.
+          readOnly: true
+        org_name:
+          type: string
+          description: Display name for the organization
+        contact_name:
+          type: string
+          description: Name for the point of contact
+        contact_email:
+          type: string
+          description: Email for the point of contact
+        contact_job_title:
+          type: string
+          description: Title of this point of contact
+        contact_phone:
+          type: string
+          description: Phone number for the point of contact.
+        tax_id:
+          type: string
+          description: Tax identification number
+        approval_status:
+          type: string
+          enum:
+            - APPLIED
+            - APPROVED
+            - SUSPENDED
+        <<: *audit-fields
+
+    organization_list_response:
+      type: object
+      description: List of organization objects
+      properties:
+        results:
+          description: Organizations returned.
+          type: array
+          items:
+            $ref: '#/components/schemas/organization'
+
+    temperature:
+      type: object
+      description: Temperature measurement
+      properties:
+        id:
+          type: string
+          description: ID for this measurement
+          readOnly: true
+        organization_id:
+          type: string
+          description: ID for the organization taking this measurement
+        temperature:
+          type: number
+          format: float
+          description: Numeric temperature in degrees Fahrenheit
+        user_id:
+          type: string
+          description: Identifier for the user
+        latitude:
+          type: number
+          format: float
+          description: Latitude for this measurement
+        longitude:
+          type: number
+          format: float
+          description: Longitude for this measurement
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when this measurement was taken
+        <<: *audit-fields
+
+    temperature_list:
+      type: array
+      description: List of temperature objects
+      items:
+        $ref: '#/components/schemas/temperature'
+
+    temperature_post_response:
+      type: object
+      description: Records that were successfully created in this post request.
+      properties:
+        results:
+          description: Temperatures returned.
+          type: array
+          items:
+            $ref: '#/components/schemas/temperature'
+
+    temperature_list_response:
+      type: object
+      description: List of temperature objects
+      properties:
+        results:
+          description: Temperatures returned.
+          type: array
+          items:
+            $ref: '#/components/schemas/temperature'
+
+  parameters:
+    authorization:
+      name: Authorization
+      in: header
+      description: 'Authentication token in the form of a bearer token (e.g. Bearer your_token_here)'
+      required: true
+      schema:
+        type: string
+
+    authorization_code:
+      name: x-authorization-code
+      in: header
+      description: Header for the organization that allows for creation of temperatures.
+      required: true
+      schema:
+        type: string
