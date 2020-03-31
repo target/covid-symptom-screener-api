@@ -5,12 +5,18 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.context.ApplicationContext
+import org.springframework.core.env.Environment
+import org.springframework.test.context.ActiveProfiles
 import spock.lang.Specification
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = KelvinApiApplication)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = KelvinApiApplication.class)
+@ActiveProfiles('integration')
 class ApplicationIntegrationSpec extends Specification {
     @LocalServerPort
     int serverPort
+
+    @Autowired
+    Environment env
 
     @Autowired
     ApplicationContext applicationContext
@@ -18,6 +24,7 @@ class ApplicationIntegrationSpec extends Specification {
     void 'got application context'() {
         expect:
         serverPort != null
-        applicationContext.id == 'blah'
+        env.activeProfiles.toList() == ['integration']
+        applicationContext.id == 'kelvin-api'
     }
 }
