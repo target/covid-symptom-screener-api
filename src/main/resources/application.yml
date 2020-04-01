@@ -5,7 +5,20 @@ spring:
     url: jdbc:postgresql://localhost:5432/kelvin-db
     driver-class-name: org.postgresql.Driver
     username: kelvin_rw
+    password: testing-password
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
+management:
+  endpoints:
+    enabled-by-default: false
+    web:
+      base-path: /
+      exposure:
+        include: info,health
+  endpoint:
+    health:
+      enabled: true
+    info:
+      enabled: true
