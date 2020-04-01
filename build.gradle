@@ -32,6 +32,10 @@ test {
 	useJUnitPlatform()
 }
 
+bootJar {
+  archiveName = 'kelvin-api.jar'
+}
+
 dockerCompose.isRequiredBy(test)
 dockerCompose.isRequiredBy(bootRun)
 dockerCompose {

@@ -1,0 +1,125 @@
+# This workflow will build a docker container, publish it to Google Container Registry, and deploy it to GKE when a release is created
+# Uses secrets:
+# - GCP_PROJECT_ID
+# - GKE_KEY
+
+name: Build and Deploy to GKE
+on:
+  push:
+    branches:
+      - master
+
+# Environment variables available to all jobs and steps in this workflow
+env:
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GITHUB_SHA: ${{ github.sha }}
+  GKE_ZONE_STG: --zone us-central1-c
+  GKE_ZONE_PROD: --region us-central1
+  REGISTRY_HOSTNAME: gcr.io
+  IMAGE: kelvin-api
+  IMAGE_TAG: latest
+  DEPLOYMENT_NAME: kelvin-api
+
+jobs:
+  build-java:
+    name: Build and deploy service
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set env to staging
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
+        run: |
+          echo "::set-env name=ENV::stg"
+          echo "::set-env name=GKE_CLUSTER::cluster-stg"
+          echo "::set-env name=GKE_ZONE_OR_REGION::$GKE_ZONE_STG"
+          echo "::set-env name=IMAGE_TAG::latest"
+          echo "::set-env name=POSTGRES_PASSWORD::${{ secrets.POSTGRES_PASSWORD_STG }}"
+          export IMAGE_PATH="$REGISTRY_HOSTNAME"/"$GCP_PROJECT_ID"/"$IMAGE":"$IMAGE_TAG"
+          echo "::set-env name=IMAGE_PATH::$IMAGE_PATH"
+      - name: Set env to production
+        if: github.event_name == 'release'
+        run: |
+          echo "::set-env name=ENV::prod"
+          echo "::set-env name=GKE_CLUSTER::cluster-prod"
+          echo "::set-env name=GKE_ZONE_OR_REGION::$GKE_ZONE_PROD"
+          echo "::set-env name=IMAGE_TAG::`$(echo $GITHUB_REF | cut -d / -f 3)`"
+          echo "::set-env name=POSTGRES_PASSWORD::${{ secrets.POSTGRES_PASSWORD_PROD }}"
+          export IMAGE_PATH="$REGISTRY_HOSTNAME"/"$GCP_PROJECT_ID"/"$IMAGE":"$IMAGE_TAG"
+          echo "::set-env name=IMAGE_PATH::$IMAGE_PATH"
+
+      - name: Set up Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build and copy JAR file
+        env:
+          GRADLE_OPTS: -Dorg.gradle.daemon=false
+        run: |
+          ./gradlew clean build -x test -x composeUp -x composeDown
+          cp build/libs/kelvin-api.jar docker/.
+
+      - name: Set up GCloud environment
+        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          version: '285.0.0'
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GKE_KEY }}
+          export_default_credentials: true
+
+      - name: Configure Docker, build container and publish it
+        run: |
+          # Set up docker to authenticate
+          gcloud auth configure-docker
+          cd docker
+          export IMAGE_PATH="$REGISTRY_HOSTNAME"/"$GCP_PROJECT_ID"/"$IMAGE":"$IMAGE_TAG"
+          echo "Building image and pushing to $IMAGE_PATH"
+          docker build -t $IMAGE_PATH .
+          docker push $REGISTRY_HOSTNAME/$GCP_PROJECT_ID/$IMAGE:$IMAGE_TAG
+          cd ..
+
+      - name: Copy application properties template
+        run: |
+          mv deployment/properties/application-$ENV.yml deployment/properties/application-override.yml
+
+      - name: Inject secrets into application-override.yml
+        uses: falnyr/replace-env-vars-action@v1.2.1
+        env:
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+        with:
+          filename: deployment/properties/application-override.yml
+
+      - name: Inject settings into deploy-kelvin-api.yml
+        uses: falnyr/replace-env-vars-action@v1.2.1
+        env:
+          IMAGE_PATH: ${{ env.IMAGE_PATH }}
+          DEPLOY_VAR: ${{ github.sha }}
+        with:
+          filename: deployment/deploy-kelvin-api.yml
+
+      - name: Create secret k8s resource
+        run: |
+          cd deployment
+          cat properties/application-override.yml | base64 | tr -d '\n' > properties.base64
+          echo "::set-env name=PROPERTIES_ENCODED::`cat properties.base64`"
+          cd ..
+
+      - name: Deploy secrets to GKE
+        run: |
+          sed -i'.BAK' -e "s|__PROPERTIES_TEXT__|$PROPERTIES_ENCODED|g" deployment/secret-kelvin-api.yml
+          gcloud container clusters get-credentials $GKE_CLUSTER $GKE_ZONE_OR_REGION --project $GCP_PROJECT_ID
+          kubectl replace -f deployment/secret-kelvin-api.yml || kubectl create -f deployment/secret-kelvin-api.yml
+
+      - name: Deploy image to GKE
+        run: |
+          gcloud container clusters get-credentials $GKE_CLUSTER $GKE_ZONE_OR_REGION --project $GCP_PROJECT_ID
+          cd deployment
+          kubectl get svc | grep -q kelvin-api || kubectl create -f svc-kelvin-api.yml
+          kubectl replace -f secret-kelvin-api.yml || kubectl create -f secret-kelvin-api.yml
+          kubectl apply -f deploy-kelvin-api.yml
+          kubectl get services -o wide

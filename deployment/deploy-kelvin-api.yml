@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kelvin-api
+  labels:
+    app: kelvin-api
+spec:
+  replicas: 2
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: kelvin-api
+  template:
+    metadata:
+      labels:
+        app: kelvin-api
+        version: v1.0
+    spec:
+      volumes:
+        # Volume to get properties
+        - name: kelvin-api-properties
+          secret:
+            secretName: kelvin-api-properties
+
+      containers:
+        - name: kelvin-api
+          image: __IMAGE_PATH__
+          imagePullPolicy: Always
+          resources:
+            # keep request = limit to keep this container in guaranteed class
+            limits:
+              cpu: 500m
+              memory: 1000Mi
+            requests:
+              cpu: 100m
+              memory: 1000Mi
+          env:
+            - name: PROPERTIES_FILE
+              value: /apps/install/kelvin-api/config/application-override.yml
+            - name: SPRING_OPTS
+              value: --spring.profiles.active=override
+            - name: HEAP_SIZE
+              value: "1g"
+            - name: JAVA_OPTS
+              value: "-Dfile.encoding=UTF-8 -Dserver.servlet.contextPath=/temperatures/v1"
+            - name: DEPLOY_FORCE
+              value: __DEPLOY_VAR__
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - name: kelvin-api-properties
+              mountPath: /apps/install/kelvin-api/config
+              readOnly: true
+
+          livenessProbe:
+            httpGet:
+              path: /temperatures/v1/health
+              port: 8080
+            initialDelaySeconds: 60
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /temperatures/v1/health
+              port: 8080
+            initialDelaySeconds: 15
+            timeoutSeconds: 10
