@@ -90,6 +90,13 @@ paths:
           schema:
             type: string
         -
+          name: authorization_code
+          description: Filter on the auth code of the organization
+          in: query
+          required: false
+          schema:
+            type: string
+        -
           name: tax_id
           description: Match the tax identification number for the org.
           in: query

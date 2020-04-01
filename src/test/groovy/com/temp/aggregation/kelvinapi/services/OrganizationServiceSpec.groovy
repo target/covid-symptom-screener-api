@@ -6,10 +6,12 @@ import com.temp.aggregation.kelvinapi.domain.OrganizationUpdate
 import com.temp.aggregation.kelvinapi.exceptions.ServiceError
 import com.temp.aggregation.kelvinapi.exceptions.ServiceException
 import com.temp.aggregation.kelvinapi.repositories.OrganizationRepository
+import org.springframework.data.domain.Example
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class OrganizationServiceSpec extends Specification {
 
@@ -82,28 +84,39 @@ class OrganizationServiceSpec extends Specification {
     organization.id == 'o1'
   }
 
+  @Unroll
   void 'find by criteria'() {
     setup:
     PageRequest pageRequest = PageRequest.of(0, 20)
     Page<Organization> expected = new PageImpl<>([])
 
     when:
-    Page<Organization> results = service.find(orgName, status, pageRequest)
+    Page<Organization> results = service.find(authorizationCode, taxId, orgName, status, pageRequest)
 
     then:
-    count1 * service.repository.findAllByApprovalStatusAndOrgNameContainingIgnoreCase(status, orgName, pageRequest) >> expected
-    count2 * service.repository.findAllByApprovalStatus(status, pageRequest) >> expected
-    count3 * service.repository.findAllByOrgNameContainingIgnoreCase(orgName, pageRequest) >> expected
-    count4 * service.repository.findAll(pageRequest) >> expected
+    1 * service.repository.findAll({ Example example ->
+      assert example.probe.authorizationCode == authorizationCode
+      assert example.probe.taxId == taxId
+      assert example.probe.orgName == orgName
+      assert example.probe.approvalStatus == status
+      assert example.matcher.allMatching
+      assert example.matcher.propertySpecifiers.propertySpecifiers.size() == 1
+      assert example.matcher.propertySpecifiers.propertySpecifiers.orgName.ignoreCase
+      assert example.matcher.propertySpecifiers.propertySpecifiers.orgName.stringMatcher.name() == 'CONTAINING'
+      return true
+    }, pageRequest
+    ) >> expected
+
     0 * _
 
     results == expected
 
     where:
-    orgName  | status                 | count1 | count2 | count3 | count4
-    null     | null                   | 0      | 0      | 0      | 1
-    'Target' | null                   | 0      | 0      | 1      | 0
-    null     | ApprovalStatus.APPLIED | 0      | 1      | 0      | 0
-    'Target' | ApprovalStatus.APPLIED | 1      | 0      | 0      | 0
+    authorizationCode | taxId | orgName  | status
+    'abcd'            | '123' | null     | null
+    null              | '123' | null     | null
+    null              | '123' | 'Target' | null
+    null              | '123' | null     | ApprovalStatus.APPLIED
+    null              | '123' | 'Target' | ApprovalStatus.APPLIED
   }
 }

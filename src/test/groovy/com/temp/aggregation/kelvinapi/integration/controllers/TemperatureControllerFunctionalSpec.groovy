@@ -8,7 +8,6 @@ import com.temp.aggregation.kelvinapi.repositories.TemperatureRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 
@@ -93,8 +92,7 @@ class TemperatureControllerFunctionalSpec extends BaseIntegrationSpec {
         response.body.results.size() == 2
 
         when: 'confirm they are in the db'
-        Page<Temperature> retrieved = repository.findAllByOrganizationId(organizationId, new PageRequest(0, 100, new Sort(ASC, ['id'])))
-
+        Page<Temperature> retrieved = repository.findAllByOrganizationId(organizationId, PageRequest.of(0, 100, ASC, 'id'))
         then:
         retrieved.content.size() == 2
         retrieved.content*.id.containsAll(response.body.results*.id)

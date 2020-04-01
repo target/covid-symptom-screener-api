@@ -10,12 +10,11 @@ import javax.persistence.Entity
 import javax.persistence.GeneratedValue
 import javax.persistence.Id
 import javax.persistence.Table
-import javax.validation.constraints.NotNull
 import java.time.Instant
 
 @Entity
 @Table(name = 'organizations')
-class Organization {
+class Organization extends OrganizationUpdate {
   @Id
   @GeneratedValue(generator='system-uuid')
   @GenericGenerator(name='system-uuid', strategy = 'uuid')
@@ -30,15 +29,4 @@ class Organization {
   Instant lastModified
   @LastModifiedBy
   String lastModifiedBy
-
-  // TODO for now copying these from OrganizationUpdate until I can figure out how to make it work with jpa
-  @NotNull
-  String taxId
-  @NotNull
-  String orgName
-  String contactName
-  String contactEmail
-  String contactJobTitle
-  String contactPhone
-  ApprovalStatus approvalStatus = ApprovalStatus.APPLIED
 }
