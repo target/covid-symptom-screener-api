@@ -1,5 +1,6 @@
-package com.temp.aggregation.kelvinapi.integration
+package com.temp.aggregation.kelvinapi.integration.controllers
 
+import com.temp.aggregation.kelvinapi.integration.BaseIntegrationSpec
 import com.temp.aggregation.kelvinapi.integration.testclients.HelloWorldClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity

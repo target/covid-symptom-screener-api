@@ -2,16 +2,10 @@ spring:
   application:
     name: kelvin-api
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
+    url: jdbc:postgresql://localhost:5432/kelvin-db
     driver-class-name: org.postgresql.Driver
     username: kelvin_rw
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-
-
-
-
-
-#    spring.jpa.
-#    spring.jpa.show-sql=false
-#    spring.jpa.hibernate.ddl-auto=create
+    hibernate:
+      ddl-auto: update

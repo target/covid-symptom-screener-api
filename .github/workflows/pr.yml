@@ -29,5 +29,4 @@ jobs:
       - name: Run tests
         env:
           GRADLE_OPTS: -Dorg.gradle.daemon=false
-        # Will need to add compose exclusions once added: -x composeUp -x composeDown
         run: ./gradlew clean build -x composeUp -x composeDown
