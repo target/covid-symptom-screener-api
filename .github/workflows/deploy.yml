@@ -38,6 +38,7 @@ jobs:
           echo "::set-env name=POSTGRES_PASSWORD::${{ secrets.POSTGRES_PASSWORD_STG }}"
           export IMAGE_PATH="$REGISTRY_HOSTNAME"/"$GCP_PROJECT_ID"/"$IMAGE":"$IMAGE_TAG"
           echo "::set-env name=IMAGE_PATH::$IMAGE_PATH"
+          echo "::set-env name=OAUTH_CLIENT_ID::${{ secrets.OAUTH_CLIENT_ID_STG }}"
       - name: Set env to production
         if: github.event_name == 'release'
         run: |
@@ -48,6 +49,7 @@ jobs:
           echo "::set-env name=POSTGRES_PASSWORD::${{ secrets.POSTGRES_PASSWORD_PROD }}"
           export IMAGE_PATH="$REGISTRY_HOSTNAME"/"$GCP_PROJECT_ID"/"$IMAGE":"$IMAGE_TAG"
           echo "::set-env name=IMAGE_PATH::$IMAGE_PATH"
+          echo "::set-env name=OAUTH_CLIENT_ID::${{ secrets.OAUTH_CLIENT_ID_PROD }}"
 
       - name: Set up Java
         uses: actions/setup-java@v1
@@ -91,6 +93,7 @@ jobs:
         uses: falnyr/replace-env-vars-action@v1.2.1
         env:
           POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          OAUTH_CLIENT_ID: ${{ env.OAUTH_CLIENT_ID }}
         with:
           filename: deployment/properties/application-override.yml
 
@@ -120,6 +123,5 @@ jobs:
           gcloud container clusters get-credentials $GKE_CLUSTER $GKE_ZONE_OR_REGION --project $GCP_PROJECT_ID
           cd deployment
           kubectl get svc | grep -q kelvin-api || kubectl create -f svc-kelvin-api.yml
-          kubectl replace -f secret-kelvin-api.yml || kubectl create -f secret-kelvin-api.yml
           kubectl apply -f deploy-kelvin-api.yml
           kubectl get services -o wide
