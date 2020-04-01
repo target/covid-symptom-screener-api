@@ -103,6 +103,9 @@ paths:
           required: false
           schema:
             type: string
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/size'
+        - $ref: '#/components/parameters/sort'
 
       responses:
         200:
@@ -207,13 +210,16 @@ paths:
           required: false
           schema:
             type: string
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/size'
+        - $ref: '#/components/parameters/sort'
       responses:
         200:
           description: Returned successfully.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/temperature_list'
+                $ref: '#/components/schemas/temperature_list_response'
         <<: *standard-responses
 
     post:
@@ -357,6 +363,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/organization'
+        total:
+          description: total number of matching organizations
+          type: integer
 
     temperature:
       type: object
@@ -415,6 +424,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/temperature'
+        total:
+          description: Total matching temerature objects
+          type: integer
 
   parameters:
     authorization:
@@ -430,5 +442,28 @@ components:
       in: header
       description: Header for the organization that allows for creation of temperatures.
       required: true
+      schema:
+        type: string
+    page:
+      name: page
+      in: query
+      description: Page number
+      required: false
+      schema:
+        type: integer
+        default: 0
+    size:
+      name: size
+      in: query
+      description: Page size
+      required: false
+      schema:
+        type: integer
+        default: 20
+    sort:
+      name: sort
+      in: query
+      description: Sorts in format field_name,asc|desc ex. sort=org_name,asc?sort=contact_name,desc
+      required: false
       schema:
         type: string
