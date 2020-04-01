@@ -1,5 +1,6 @@
 package com.temp.aggregation.kelvinapi.domain
 
+import groovy.transform.EqualsAndHashCode
 import org.hibernate.annotations.GenericGenerator
 import org.springframework.data.annotation.CreatedBy
 import org.springframework.data.annotation.CreatedDate
@@ -15,25 +16,25 @@ import java.time.Instant
 
 @Entity
 @Table(name = 'temperatures')
+@EqualsAndHashCode
 class Temperature {
-    @Id
-    @GeneratedValue(generator= 'system-uuid')
-    @GenericGenerator(name= 'system-uuid', strategy = 'uuid')
-    String id
-    @NotNull
-    String organizationId
-    @NotNull
-    float temperature
-    String userId
-    float latitude
-    float longitude
-    Instant timestamp = Instant.now()
-    @CreatedDate
-    Instant created
-    @CreatedBy
-    String createdBy
-    @LastModifiedDate
-    Instant lastModified
-    @LastModifiedBy
-    String lastModifiedBy
+  @Id
+  @GeneratedValue(generator = 'system-uuid')
+  @GenericGenerator(name = 'system-uuid', strategy = 'uuid')
+  String id
+  String organizationId
+  @NotNull
+  float temperature
+  String userId
+  float latitude
+  float longitude
+  Instant timestamp = Instant.now()
+  @CreatedDate
+  Instant created
+  @CreatedBy
+  String createdBy
+  @LastModifiedDate
+  Instant lastModified
+  @LastModifiedBy
+  String lastModifiedBy
 }

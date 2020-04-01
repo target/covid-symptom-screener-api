@@ -6,7 +6,8 @@ enum ServiceError {
   // Service errors
   ORGANIZATION_CONFLICT(HttpStatus.CONFLICT, 'Organization with tax id %s exists already'),
   NOT_FOUND(HttpStatus.NOT_FOUND, '%s not found'),
-  UNEXPECTED_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 'Unexpected error has occurred. %s')
+  UNEXPECTED_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 'Unexpected error has occurred. %s'),
+  ORGANIZATION_NOT_APPROVED(HttpStatus.FORBIDDEN, 'No approved organization found for provided auth code.')
 
   final String errorDescription
   final HttpStatus httpStatus

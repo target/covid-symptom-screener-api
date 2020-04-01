@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
+import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.APPROVED
 import static org.springframework.data.domain.ExampleMatcher.GenericPropertyMatchers.contains
 
 @Service
@@ -53,5 +54,13 @@ class OrganizationService {
         orgName: name,
         approvalStatus: status)
     return repository.findAll(Example.of(example, matcher), pageable)
+  }
+
+  Organization getApprovedOrganizationByAuthCode(String authorizationCode) {
+    Organization org = repository.findByApprovalStatusAndAuthorizationCode(APPROVED, authorizationCode)
+    if (!org) {
+      throw new ServiceException(ServiceError.ORGANIZATION_NOT_APPROVED)
+    }
+    return org
   }
 }
