@@ -7,3 +7,4 @@ spring:
 
 google-auth:
   client-id: __OAUTH_CLIENT_ID__
+  enabled: true

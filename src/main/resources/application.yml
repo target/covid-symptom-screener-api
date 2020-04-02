@@ -11,6 +11,10 @@ management:
     info:
       enabled: true
 
+google-auth:
+  client-id: SOME_CLIENT_ID
+  enabled: false 
+
 spring:
   application:
     name: kelvin-api
