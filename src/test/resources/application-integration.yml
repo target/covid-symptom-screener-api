@@ -1,6 +1,7 @@
 feign:
   app:
     url: "http://localhost:8080"
+
 spring:
   application:
     name: kelvin-api
@@ -12,6 +13,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+
 google-auth:
   client-id: SOME_CLIENT_ID
   enabled: false

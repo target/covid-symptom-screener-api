@@ -10,4 +10,4 @@ google-auth:
   enabled: true
 
 cors:
-  origins: http://localhost:3000,https://stg.temperature-aggregator.app
+  origins: https://temperature-aggregator.app
