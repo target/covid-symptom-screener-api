@@ -72,6 +72,10 @@ class TemperatureControllerFunctionalSpec extends BaseIntegrationSpec {
     response.body.results*.organizationId.unique() == [organizationId]
     response.body.results*.latitude.containsAll([44.934940f, 44.934941f])
     response.body.results*.longitude.containsAll([-93.158660f, -93.158661f])
+    response.body.results*.created
+    response.body.results*.createdBy
+    response.body.results*.lastModified
+    response.body.results*.lastModifiedBy
   }
 
   void 'can save temperatures via the API'() {

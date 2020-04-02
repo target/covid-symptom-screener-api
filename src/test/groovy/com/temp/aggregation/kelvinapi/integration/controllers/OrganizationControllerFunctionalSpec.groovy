@@ -48,6 +48,10 @@ class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
     response.statusCode == HttpStatus.CREATED
     response.body.id
     response.body.approvalStatus == ApprovalStatus.APPLIED
+    response.body.created
+    response.body.createdBy
+    response.body.lastModified
+    response.body.lastModifiedBy
   }
 
   void 'get organization'() {
@@ -85,6 +89,10 @@ class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
     response.body.contactEmail == update.contactEmail
     response.body.contactPhone == update.contactPhone
     response.body.contactJobTitle == update.contactJobTitle
+    response.body.created
+    response.body.createdBy
+    response.body.lastModified
+    response.body.lastModifiedBy
   }
 
   @Unroll
