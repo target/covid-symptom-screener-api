@@ -73,6 +73,74 @@ class OrganizationServiceSpec extends Specification {
     0 * _
   }
 
+  void 'save sets an auth code when status is approved'() {
+    setup:
+    OrganizationUpdate update = new OrganizationUpdate(
+        taxId: '123',
+        orgName: 'Target',
+        approvalStatus: ApprovalStatus.APPROVED
+    )
+
+    Organization expected = new Organization(id: 'o1')
+
+    when:
+    Organization organization = service.save('o1', update)
+
+    then:
+    1 * service.repository.findById('o1') >> Optional.of(expected)
+    1 * service.repository.existsByAuthorizationCode(_ as String) >> true
+    1 * service.repository.existsByAuthorizationCode(_ as String) >> false
+    1 * service.repository.save({
+      assert it.taxId == update.taxId
+      assert it.orgName == update.orgName
+      assert it.approvalStatus == ApprovalStatus.APPROVED
+      assert it.authorizationCode
+      return true
+    }) >> expected
+    0 * _
+
+    organization == expected
+  }
+
+  void 'save throws exception if organization is not found'() {
+    setup:
+    OrganizationUpdate update = new OrganizationUpdate(
+        taxId: '123',
+        orgName: 'Target'
+    )
+    when:
+    service.save('o1', update)
+
+    then:
+    1 * service.repository.findById('o1') >> Optional.empty()
+    0 * _
+
+    ServiceException e = thrown()
+    e.serviceError == ServiceError.NOT_FOUND
+  }
+
+  void 'save fails when unique auth code is not generated on approve update'() {
+    setup:
+    OrganizationUpdate update = new OrganizationUpdate(
+        taxId: '123',
+        orgName: 'Target',
+        approvalStatus: ApprovalStatus.APPROVED
+    )
+
+    Organization expected = new Organization(id: 'o1')
+
+    when:
+    service.save('o1', update)
+
+    then:
+    1 * service.repository.findById('o1') >> Optional.of(expected)
+    11 * service.repository.existsByAuthorizationCode(_ as String) >> true
+    0 * _
+
+    ServiceException e = thrown()
+    e.serviceError == ServiceError.UNEXPECTED_ERROR
+  }
+
   void 'get organization'() {
     when:
     Organization organization = service.getOrganization('o1')
@@ -118,5 +186,19 @@ class OrganizationServiceSpec extends Specification {
     null              | '123' | 'Target' | null
     null              | '123' | null     | ApprovalStatus.APPLIED
     null              | '123' | 'Target' | ApprovalStatus.APPLIED
+  }
+
+  void 'generate auth code'() {
+    when: 'A code is retrieved'
+    List<String> codes = (0..100000).collect {
+      return service.generateCode()
+    }
+
+    then: 'Random codes matches spec'
+    codes.each { String code ->
+      assert code.length() == 5
+      assert code.matches('^[a-z0-9]+$')
+    }
+    0 * _
   }
 }

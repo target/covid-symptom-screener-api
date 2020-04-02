@@ -14,6 +14,9 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
+import java.nio.ByteBuffer
+import java.security.SecureRandom
+
 import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.APPROVED
 import static org.springframework.data.domain.ExampleMatcher.GenericPropertyMatchers.contains
 
@@ -22,6 +25,9 @@ class OrganizationService {
 
   @Autowired
   OrganizationRepository repository
+
+  private static final Random RANDOM_NUM =
+      new SecureRandom(ByteBuffer.allocate(8).putLong(System.currentTimeMillis()).array())
 
   Organization create(OrganizationUpdate organizationUpdate) {
     if (repository.findByTaxId(organizationUpdate.taxId)) {
@@ -40,6 +46,10 @@ class OrganizationService {
 
   Organization save(String id, OrganizationUpdate organizationUpdate) {
     Organization organization = getOrganization(id)
+    if (!organization.authorizationCode && organizationUpdate.approvalStatus == APPROVED) {
+      organization.authorizationCode = generateAuthorizationCode()
+    }
+
     InvokerHelper.setProperties(organization, organizationUpdate.properties)
     return repository.save(organization)
   }
@@ -62,5 +72,23 @@ class OrganizationService {
       throw new ServiceException(ServiceError.ORGANIZATION_NOT_APPROVED)
     }
     return org
+  }
+
+  private String generateAuthorizationCode() {
+    String authCode = (0..10).findResult {
+      String code = generateCode()
+      return repository.existsByAuthorizationCode(code) ? null : code
+    }
+
+    if (!authCode) {
+      throw new ServiceException(ServiceError.UNEXPECTED_ERROR, 'Unable to generate authorization code. Try again.')
+    }
+    return authCode
+  }
+
+  private String generateCode() {
+    String base36 = Integer.toString(RANDOM_NUM.nextInt(Integer.MAX_VALUE), 36)
+    Integer.toString(RANDOM_NUM.nextInt(Integer.MAX_VALUE), 36)
+    return base36.padLeft(5, '0').take(5)
   }
 }
