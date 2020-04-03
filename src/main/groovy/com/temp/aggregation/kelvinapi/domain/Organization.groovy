@@ -11,11 +11,19 @@ import javax.persistence.Entity
 import javax.persistence.EntityListeners
 import javax.persistence.GeneratedValue
 import javax.persistence.Id
+import javax.persistence.Index
 import javax.persistence.Table
 import java.time.Instant
 
 @Entity
-@Table(name = 'organizations')
+@Table(
+    name = 'organizations',
+    indexes = [
+      @Index(name = 'auth_code_index', columnList = 'authorizationCode', unique = true),
+      @Index(name = 'tax_code_index', columnList = 'taxId', unique = true),
+      @Index(name = 'org_name_index', columnList = 'orgName', unique = true)
+    ]
+)
 @EntityListeners(AuditingEntityListener)
 class Organization extends OrganizationUpdate {
   @Id

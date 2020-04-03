@@ -9,12 +9,19 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener
 
 import javax.persistence.Entity
 import javax.persistence.EntityListeners
+import javax.persistence.Index
 import javax.persistence.Table
 import java.time.Instant
 
 @Entity
 @EntityListeners(AuditingEntityListener)
-@Table(name = 'user_roles')
+@Table(
+    name = 'user_roles',
+    indexes = [
+        @Index(name = 'user_email_index', columnList = 'emailAddress', unique = true)
+    ]
+
+)
 @EqualsAndHashCode
 class UserRole extends UserRoleUpdate {
   @CreatedDate

@@ -235,14 +235,14 @@ class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
     List<Organization> savedOrgs = repository.saveAll([
         new Organization(
             authorizationCode: 'orgAuthCode',
-            taxId: 'taxId',
+            taxId: 'taxIdA',
             orgName: 'test org a',
             contactName: 'Joe',
             contactEmail: 'joe@test.com',
             approvalStatus: APPROVED),
         new Organization(
             authorizationCode: 'otherAuthCode',
-            taxId: 'taxId',
+            taxId: 'taxIdB',
             orgName: 'test org b',
             contactName: 'Joe',
             contactEmail: 'joe@test.com',
