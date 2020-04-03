@@ -4,7 +4,6 @@ import com.temp.aggregation.kelvinapi.domain.ErrorResponse
 import com.temp.aggregation.kelvinapi.domain.ListResponse
 import com.temp.aggregation.kelvinapi.domain.Organization
 import com.temp.aggregation.kelvinapi.domain.Temperature
-import com.temp.aggregation.kelvinapi.exceptions.ServiceError
 import com.temp.aggregation.kelvinapi.integration.BaseIntegrationSpec
 import com.temp.aggregation.kelvinapi.integration.testclients.TemperatureClient
 import com.temp.aggregation.kelvinapi.repositories.OrganizationRepository
@@ -161,7 +160,7 @@ class TemperatureControllerFunctionalSpec extends BaseIntegrationSpec {
 
     then:
     response.statusCode == HttpStatus.NOT_FOUND
-    response.body.message == ServiceError.NOT_FOUND.getDescriptionWithProperties('/temperatures/bad-id')
+    response.body.message == 'Not Found'
   }
 
   void 'can delete individual temperature by id'() {
