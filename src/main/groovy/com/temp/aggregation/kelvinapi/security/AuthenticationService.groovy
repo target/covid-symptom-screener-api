@@ -1,12 +1,11 @@
-package com.temp.aggregation.kelvinapi.authentication
+package com.temp.aggregation.kelvinapi.security
 
 import com.temp.aggregation.kelvinapi.domain.User
-import com.temp.aggregation.kelvinapi.security.RequestContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
-class UserAuthorizationService {
+class AuthenticationService {
 
   @Autowired
   TokenValidationService tokenValidationService

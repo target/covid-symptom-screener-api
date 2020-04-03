@@ -13,7 +13,10 @@ management:
 
 google-auth:
   client-id: SOME_CLIENT_ID
-  enabled: false 
+  enabled: false
+
+authorization:
+  preauthorized-admins: douglas.lochowski.haney@gmail.com,jorge.alberto.trujillo@gmail.com,conniefritz70@gmail.com
 
 spring:
   application:

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <springProfile name="!local,!test">
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <timestamp>
+                        <fieldName>timeMillis</fieldName>
+                        <pattern>[UNIX_TIMESTAMP_AS_NUMBER]</pattern>
+                    </timestamp>
+                    <message/>
+                    <threadName>
+                        <fieldName>thread</fieldName>
+                    </threadName>
+                    <logLevel>
+                        <fieldName>level</fieldName>
+                    </logLevel>
+                    <loggerName>
+                        <fieldName>loggerName</fieldName>
+                    </loggerName>
+                    <nestedField>
+                        <fieldName>thrown</fieldName>
+                        <providers>
+                            <throwableClassName>
+                                <fieldName>name</fieldName>
+                            </throwableClassName>
+                            <stackTrace>
+                                <fieldName>extendedStackTrace</fieldName>
+                                <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                                    <rootCauseFirst>true</rootCauseFirst>
+                                    <maxLength>10000</maxLength>
+                                    <exclude>org\.springframework\.cglib\.proxy\.MethodProxy</exclude>
+                                </throwableConverter>
+                            </stackTrace>
+                        </providers>
+                    </nestedField>
+                    <mdc>
+                        <fieldName>contextMap</fieldName>
+                    </mdc>
+                </providers>
+            </encoder>
+        </springProfile>
+        <springProfile name="local,test">
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss ZZZ} [%thread] %X{reqdata}%-5level %logger{36} - %msg%n</pattern>
+            </encoder>
+        </springProfile>
+    </appender>
+    <root level="info">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>

@@ -2,9 +2,11 @@ package com.temp.aggregation.kelvinapi.services
 
 import com.temp.aggregation.kelvinapi.domain.Organization
 import com.temp.aggregation.kelvinapi.domain.Temperature
+import com.temp.aggregation.kelvinapi.domain.TemperatureUpdate
 import com.temp.aggregation.kelvinapi.exceptions.ServiceError
 import com.temp.aggregation.kelvinapi.exceptions.ServiceException
 import com.temp.aggregation.kelvinapi.repositories.TemperatureRepository
+import org.codehaus.groovy.runtime.InvokerHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -23,10 +25,12 @@ class TemperaturesService {
     return temperatureRepository.findAllByOrganizationId(organizationId, pageable)
   }
 
-  List<Temperature> saveAll(List<Temperature> temperatures, String organizationAuthCode) {
+  List<Temperature> saveAll(List<TemperatureUpdate> temperatures, String organizationAuthCode) {
     Organization organization = organizationService.getApprovedOrganizationByAuthCode(organizationAuthCode)
     return temperatureRepository.saveAll(
-        temperatures.collect { temperature ->
+        temperatures.collect { temperatureUpdate ->
+          Temperature temperature = new Temperature()
+          InvokerHelper.setProperties(temperature, temperatureUpdate.properties)
           temperature.organizationId = organization.id
           return temperature
         }

@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service
 import java.nio.ByteBuffer
 import java.security.SecureRandom
 
+import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.APPLIED
 import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.APPROVED
 import static org.springframework.data.domain.ExampleMatcher.GenericPropertyMatchers.contains
 
@@ -35,6 +36,7 @@ class OrganizationService {
     }
     Organization organization = new Organization()
     InvokerHelper.setProperties(organization, organizationUpdate.properties)
+    organization.approvalStatus = APPLIED
     return repository.save(organization)
   }
 

@@ -2,6 +2,7 @@ package com.temp.aggregation.kelvinapi.controllers
 
 import com.temp.aggregation.kelvinapi.domain.ListResponse
 import com.temp.aggregation.kelvinapi.domain.Temperature
+import com.temp.aggregation.kelvinapi.domain.TemperatureUpdate
 import com.temp.aggregation.kelvinapi.services.OrganizationService
 import com.temp.aggregation.kelvinapi.services.TemperaturesService
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,7 +37,7 @@ class TemperaturesController {
   @ResponseStatus(HttpStatus.CREATED)
   List<Temperature> saveTemperatures(
       @RequestHeader('x-authorization-code') String organizationAuthCode,
-      @RequestBody List<Temperature> temperatures
+      @RequestBody List<TemperatureUpdate> temperatures
   ) {
     return temperaturesService.saveAll(temperatures, organizationAuthCode)
   }

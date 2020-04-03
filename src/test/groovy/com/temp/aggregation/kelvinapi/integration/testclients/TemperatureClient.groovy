@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.*
 
 import static org.springframework.web.bind.annotation.RequestMethod.*
 
-@FeignClient(name = 'temperature',
+@FeignClient(
+    name = 'temperatures',
     url = '${feign.app.url}',
     decode404 = true
 )

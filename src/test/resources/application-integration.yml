@@ -16,4 +16,7 @@ spring:
 
 google-auth:
   client-id: SOME_CLIENT_ID
-  enabled: false
+  enabled: true
+authorization:
+  preauthorized-admins: test-adminA@email.com,test-adminB@email.com
+

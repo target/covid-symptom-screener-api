@@ -279,6 +279,91 @@ paths:
           description: Deleted successfully.
         <<: *get-responses
 
+  /user-roles:
+    parameters:
+      - $ref: '#/components/parameters/authorization'
+    get:
+      parameters:
+        -
+          in: query
+          name: role
+          required: false
+          schema:
+            type: string
+          description: A role to search with
+        -
+          in: query
+          name: email_address
+          required: false
+          schema:
+            type: string
+          description: An email associated with a user Google account to search by.
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/size'
+        - $ref: '#/components/parameters/sort'
+      tags:
+        - UserRoles
+      summary: Find user roles
+      description: Find user roles by role or email address.
+      responses:
+        200:
+          description: Returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user-role-list-response'
+        <<: *get-responses
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/user-role'
+      tags:
+        - UserRoles
+      summary: Create or update user role
+      description: Create or update user role
+      responses:
+        201:
+          description: Created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user-role'
+        <<: *post-responses
+    delete:
+      parameters:
+        - in: query
+          name: email_address
+          required: false
+          schema:
+            type: string
+          description: An email associated with a user Google account to delete the role for.
+      tags:
+        - UserRoles
+      summary: Deletes a user role
+      description: Deletes a specific user role
+      responses:
+        204:
+          description: Deleted successfully.
+        <<: *get-responses
+
+  /user-roles/current:
+    get:
+      tags:
+        - UserRoles
+      summary: Find the user role of the currently authenticated user.
+      description: Find the user role of the currently authenticated user.
+      responses:
+        200:
+          description: Returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user-role'
+        <<: *get-responses
+
 components:
   schemas:
 
@@ -426,6 +511,31 @@ components:
             $ref: '#/components/schemas/temperature'
         total:
           description: Total matching temerature objects
+          type: integer
+
+    user-role:
+      type: object
+      description: The role associated with a user. Note most users will not have any role.
+      properties:
+        email_address:
+          description: The email address associated with the users Google account.
+          type: string
+        role:
+          type: string
+          enum:
+            - ADMIN
+
+    user-role-list-response:
+      type: object
+      description: A list of user roles.
+      properties:
+        results:
+          description: user-roles returned.
+          type: array
+          items:
+            $ref: '#/components/schemas/user-role'
+        total:
+          description: Total matching user-role objects
           type: integer
 
   parameters:
