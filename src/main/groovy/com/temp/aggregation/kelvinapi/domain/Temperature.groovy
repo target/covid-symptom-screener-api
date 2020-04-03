@@ -1,6 +1,7 @@
 package com.temp.aggregation.kelvinapi.domain
 
 import groovy.transform.EqualsAndHashCode
+import org.hibernate.annotations.Formula
 import org.hibernate.annotations.GenericGenerator
 import org.springframework.data.annotation.CreatedBy
 import org.springframework.data.annotation.CreatedDate
@@ -27,6 +28,8 @@ class Temperature extends TemperatureUpdate {
   @GenericGenerator(name = 'system-uuid', strategy = 'uuid')
   String id
   String organizationId
+  @Formula('(SELECT o.org_name from organizations o WHERE o.id = organization_id)')
+  String organizationName
   @CreatedDate
   Instant created
   @CreatedBy

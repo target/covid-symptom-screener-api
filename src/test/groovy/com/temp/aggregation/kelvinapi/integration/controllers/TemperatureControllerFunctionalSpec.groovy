@@ -118,21 +118,71 @@ class TemperatureControllerFunctionalSpec extends BaseIntegrationSpec {
     then:
     retrieved.content.size() == 2
     retrieved.content*.id.containsAll(response.body*.id)
+
+    cleanup:
+    organizationRepository.deleteById(savedOrg.id)
+  }
+
+  void 'save temperature with an org name  does not persist name'() {
+    given:
+    String orgAuthCode = 'auth1'
+    Organization savedOrg = organizationRepository.save(
+        new Organization(
+            authorizationCode: orgAuthCode,
+            taxId: '11111',
+            orgName: 'testOrg',
+            contactName: 'Joe',
+            contactEmail: 'joe@test.com',
+            approvalStatus: APPROVED
+        )
+    )
+    Temperature temperature = new Temperature(
+        temperature: 100.5,
+        userId: 'test-user-b',
+        latitude: 44.934941,
+        longitude: -93.158661,
+        organizationName: 'some other name'
+    )
+
+    when:
+    ResponseEntity<Temperature> saved = client.saveTemperatures(orgAuthCode, [temperature])
+
+    then:
+    saved.statusCode == HttpStatus.CREATED
+    saved.body.organizationName != temperature.organizationName
+
+    when:
+    ResponseEntity<Temperature> retrived = client.getTemperature(saved.body.id)
+
+    then:
+    retrived.statusCode == HttpStatus.OK
+    retrived.body.organizationName == 'testOrg'
+
+    cleanup:
+    organizationRepository.deleteById(savedOrg.id)
   }
 
   void 'can get individual temperature by id'() {
     given:
-    String organizationId = 'testOrgC'
+    Organization savedOrg = organizationRepository.save(
+        new Organization(
+            orgName: 'testOrg',
+            approvalStatus: APPROVED,
+            taxId: '111',
+            contactName: 'Test User',
+            contactEmail: 'testuser@email.com'
+        )
+    )
     List<Temperature> temperatures = [
         new Temperature(
-            organizationId: organizationId,
+            organizationId: savedOrg.id,
             temperature: 98.6,
             userId: 'test-user-a',
             latitude: 44.934940,
             longitude: -93.158660
         ),
         new Temperature(
-            organizationId: organizationId,
+            organizationId: savedOrg.id,
             temperature: 100.5,
             userId: 'test-user-b',
             latitude: 44.934941,
@@ -146,14 +196,19 @@ class TemperatureControllerFunctionalSpec extends BaseIntegrationSpec {
 
     then:
     gotFirstResponse.statusCode == HttpStatus.OK
-    gotFirstResponse.body == saved.first()
+    gotFirstResponse.body.id == saved.first().id
+    gotFirstResponse.body.organizationName == 'testOrg'
 
     when:
     ResponseEntity<Temperature> gotSecondResponse = client.getTemperature(saved.last().id)
 
     then:
     gotSecondResponse.statusCode == HttpStatus.OK
-    gotSecondResponse.body == saved.last()
+    gotSecondResponse.body.id == saved.last().id
+    gotSecondResponse.body.organizationName == 'testOrg'
+
+    cleanup:
+    organizationRepository.deleteById(savedOrg.id)
   }
 
   void '404 on get by id is handled'() {
