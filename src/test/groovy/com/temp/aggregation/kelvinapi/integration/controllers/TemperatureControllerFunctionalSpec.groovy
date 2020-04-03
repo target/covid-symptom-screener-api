@@ -84,6 +84,8 @@ class TemperatureControllerFunctionalSpec extends BaseIntegrationSpec {
             authorizationCode: orgAuthCode,
             taxId: '11111',
             orgName: 'testOrg',
+            contactName: 'Joe',
+            contactEmail: 'joe@test.com',
             approvalStatus: APPROVED
         )
     )

@@ -6,6 +6,7 @@ import com.temp.aggregation.kelvinapi.domain.Organization
 import com.temp.aggregation.kelvinapi.domain.OrganizationUpdate
 import com.temp.aggregation.kelvinapi.security.UserRoleService
 import com.temp.aggregation.kelvinapi.services.OrganizationService
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -13,9 +14,12 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.WebDataBinder
 import org.springframework.web.bind.annotation.*
 
+import javax.validation.Valid
+
 import static com.temp.aggregation.kelvinapi.domain.Role.ADMIN
 
 @RestController
+@Slf4j
 class OrganizationController {
   @Autowired
   OrganizationService service
@@ -30,7 +34,8 @@ class OrganizationController {
 
   @PostMapping('/organizations')
   @ResponseStatus(HttpStatus.CREATED)
-  Organization createOrganization(@RequestBody OrganizationUpdate organizationUpdate) {
+  Organization createOrganization(@Valid @RequestBody OrganizationUpdate organizationUpdate) {
+    log.info("Request to create an organization with name ${organizationUpdate.orgName}")
     return service.create(organizationUpdate)
   }
 
@@ -39,6 +44,7 @@ class OrganizationController {
   Organization getOrganization(@PathVariable(value = 'id') String id,
                                @RequestHeader(value = 'x-authorization-code', required = false) String organizationCode
   ) {
+    log.info("Request to get an organization for id $id")
     Organization organization = service.getOrganization(id)
     if (!organizationCode || organization?.authorizationCode != organizationCode) {
       userRoleService.requireAdmin()
@@ -49,6 +55,7 @@ class OrganizationController {
   @PutMapping('/organizations/{id}')
   @ResponseStatus(HttpStatus.OK)
   Organization updateOrganization(@PathVariable String id, @RequestBody OrganizationUpdate organizationUpdate) {
+    log.info("Request to update an organization for id $id to status ${organizationUpdate.approvalStatus}")
     userRoleService.requireAdmin()
     return service.save(id, organizationUpdate)
   }
@@ -64,6 +71,8 @@ class OrganizationController {
       @RequestHeader(value = 'x-authorization-code', required = false) String organisationCode,
       Pageable pageable
   ) {
+    log.info('Request to list organizations')
+
     if (userRoleService.currentUserHasRole(ADMIN)) {
       Page<Organization> page = service.find(authorizationCode, taxId, orgName, approvalStatus, pageable)
       return new ListResponse<Organization>(results: page.content, total: page.totalElements)

@@ -6,7 +6,7 @@ import java.time.Instant
 
 @MappedSuperclass
 class TemperatureUpdate {
-  @NotNull
+  @NotNull(message = 'temperature must not be null')
   Float temperature
   String userId
   float latitude

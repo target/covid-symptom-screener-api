@@ -66,7 +66,14 @@ class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void 'get organization'() {
     setup:
-    Organization organization = repository.save(new Organization(orgName: 'Target', authorizationCode: 'abc', taxId: '1', approvalStatus: ApprovalStatus.APPLIED))
+    Organization organization = repository.save(new Organization(
+        orgName: 'Target',
+        authorizationCode: 'abc',
+        taxId: '1',
+        contactName: 'Joe',
+        contactEmail: 'joe@test.com',
+        approvalStatus: ApprovalStatus.APPLIED)
+    )
 
     when:
     ResponseEntity<Organization> response = client.getOrganization(organization.id, 'abc')
@@ -78,7 +85,14 @@ class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void 'get organization with mismatched org auth code fails for non admin'() {
     setup:
-    Organization organization = repository.save(new Organization(orgName: 'Target', authorizationCode: 'abc', taxId: '1', approvalStatus: ApprovalStatus.APPLIED))
+    Organization organization = repository.save(new Organization(
+        orgName: 'Target',
+        authorizationCode: 'abc',
+        taxId: '1',
+        contactName: 'Joe',
+        contactEmail: 'joe@test.com',
+        approvalStatus: ApprovalStatus.APPLIED)
+    )
     UserRole currentTestUserRole = userRoleRepository.findById('test-adminA@email.com').orElse(null)
     userRoleRepository.deleteById('test-adminA@email.com')
 
@@ -95,7 +109,14 @@ class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void 'update organization'() {
     setup:
-    Organization organization = repository.save(new Organization(orgName: 'Target', authorizationCode: 'abc', taxId: '1', approvalStatus: ApprovalStatus.APPLIED))
+    Organization organization = repository.save(new Organization(
+        orgName: 'Target',
+        authorizationCode: 'abc',
+        taxId: '1',
+        contactName: 'Joe',
+        contactEmail: 'joe@test.com',
+        approvalStatus: ApprovalStatus.APPLIED)
+    )
     OrganizationUpdate update = new OrganizationUpdate(
         taxId: '123',
         contactName: 'Ops Guy',
@@ -150,11 +171,41 @@ class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
     setup:
     Pageable pageable = PageRequest.of(0, 20)
     repository.saveAll([
-        new Organization(orgName: 'Target', authorizationCode: 'abc', taxId: '1', approvalStatus: ApprovalStatus.APPLIED),
-        new Organization(orgName: 'Walmart', authorizationCode: 'cde', taxId: '2', approvalStatus: APPROVED),
-        new Organization(orgName: 'Cub Foods', authorizationCode: 'def', taxId: '3', approvalStatus: ApprovalStatus.APPLIED),
-        new Organization(orgName: 'Target Plaza', authorizationCode: 'efg', taxId: '4', approvalStatus: APPROVED),
-        new Organization(orgName: 'Lunds & Byerlys', authorizationCode: 'fgh', taxId: '5', approvalStatus: APPROVED),
+        new Organization(
+            orgName: 'Target',
+            authorizationCode: 'abc',
+            taxId: '1',
+            contactName: 'Joe',
+            contactEmail: 'joe@test.com',
+            approvalStatus: ApprovalStatus.APPLIED),
+        new Organization(
+            orgName: 'Walmart',
+            authorizationCode: 'cde',
+            taxId: '2',
+            contactName: 'Joe',
+            contactEmail: 'joe@test.com',
+            approvalStatus: APPROVED),
+        new Organization(
+            orgName: 'Cub Foods',
+            authorizationCode: 'def',
+            taxId: '3',
+            contactName: 'Joe',
+            contactEmail: 'joe@test.com',
+            approvalStatus: ApprovalStatus.APPLIED),
+        new Organization(
+            orgName: 'Target Plaza',
+            authorizationCode: 'efg',
+            taxId: '4',
+            contactName: 'Joe',
+            contactEmail: 'joe@test.com',
+            approvalStatus: APPROVED),
+        new Organization(
+            orgName: 'Lunds & Byerlys',
+            authorizationCode: 'fgh',
+            taxId: '5',
+            contactName: 'Joe',
+            contactEmail: 'joe@test.com',
+            approvalStatus: APPROVED),
     ])
 
     when:
@@ -182,8 +233,20 @@ class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
     UserRole currentTestUserRole = userRoleRepository.findById('test-adminA@email.com').orElse(null)
     userRoleRepository.deleteById('test-adminA@email.com')
     List<Organization> savedOrgs = repository.saveAll([
-        new Organization(authorizationCode: 'orgAuthCode', taxId: 'taxId', orgName: 'test org a', approvalStatus: APPROVED),
-        new Organization(authorizationCode: 'otherAuthCode', taxId: 'taxId', orgName: 'test org b', approvalStatus: APPROVED)
+        new Organization(
+            authorizationCode: 'orgAuthCode',
+            taxId: 'taxId',
+            orgName: 'test org a',
+            contactName: 'Joe',
+            contactEmail: 'joe@test.com',
+            approvalStatus: APPROVED),
+        new Organization(
+            authorizationCode: 'otherAuthCode',
+            taxId: 'taxId',
+            orgName: 'test org b',
+            contactName: 'Joe',
+            contactEmail: 'joe@test.com',
+            approvalStatus: APPROVED)
     ])
 
     when:
