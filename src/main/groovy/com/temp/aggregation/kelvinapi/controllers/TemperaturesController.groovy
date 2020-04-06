@@ -56,12 +56,12 @@ class TemperaturesController {
   @PostMapping('/temperatures')
   @ResponseStatus(HttpStatus.CREATED)
   List<Temperature> saveTemperatures(
-      @RequestHeader('x-authorization-code') String organizationAuthCode,
+      @RequestHeader('x-organization-pin') String organizationPin,
       @RequestBody List<TemperatureUpdate> temperatures
   ) {
-    log.info("Request to create temperature with auth code $organizationAuthCode")
+    log.info("Request to create temperature with auth code $organizationPin")
 
-    return temperaturesService.saveAll(temperatures, organizationAuthCode)
+    return temperaturesService.saveAll(temperatures, organizationPin)
   }
 
   @DeleteMapping('/temperatures/{id}')

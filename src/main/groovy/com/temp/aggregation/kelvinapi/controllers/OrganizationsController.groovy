@@ -44,7 +44,7 @@ class OrganizationsController {
   @GetMapping('/organizations/{id}')
   @ResponseStatus(HttpStatus.OK)
   Organization getOrganization(@PathVariable(value = 'id') String id,
-                               @RequestHeader(value = 'x-authorization-code', required = false) String organizationCode
+                               @RequestHeader(value = 'x-organization-pin', required = false) String organizationCode
   ) {
     log.info("Request to get an organization for id $id")
     Organization organization = service.getOrganization(id)
@@ -70,7 +70,7 @@ class OrganizationsController {
       @RequestParam(name = 'authorization_code', required = false) String authorizationCode,
       @RequestParam(name = 'name', required = false) String orgName,
       @RequestParam(name = 'approval_status', required = false) ApprovalStatus approvalStatus,
-      @RequestHeader(value = 'x-authorization-code', required = false) String organizationPin,
+      @RequestHeader(value = 'x-organization-pin', required = false) String organizationPin,
       Pageable pageable
   ) {
     log.info('Request to list organizations')
@@ -79,11 +79,10 @@ class OrganizationsController {
       String orgPin = authorizationCode ?: organizationPin
       Page<Organization> page = service.find(orgPin, taxId, orgName, approvalStatus, pageable)
       return new ListResponse<Organization>(results: page.content, total: page.totalElements)
-    }
-
-    if (!organizationPin) {
+    } else if (!organizationPin) {
       throw new ServiceException(ServiceError.UNAUTHORIZED)
     }
+
     // filter by auth code in header
     Page<Organization> page = service.find(organizationPin, taxId, orgName, approvalStatus, pageable)
     return new ListResponse<Organization>(results: page.content, total: page.totalElements)

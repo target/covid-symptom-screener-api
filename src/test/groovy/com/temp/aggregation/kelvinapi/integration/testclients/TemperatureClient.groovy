@@ -20,7 +20,7 @@ interface TemperatureClient {
 
   @RequestMapping(method = POST, value = '/temperatures')
   ResponseEntity<List<Temperature>> saveTemperatures(
-      @RequestHeader('x-authorization-code') String authCode,
+      @RequestHeader('x-organization-pin') String organizationPin,
       @RequestBody List<Temperature> temperatures
   )
 

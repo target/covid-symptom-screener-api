@@ -32,7 +32,7 @@ interface OrganizationClient {
 
   @RequestMapping(method = GET, value = '/organizations/{id}')
   ResponseEntity<Organization> getOrganization(@PathVariable(value = 'id') String id,
-                                               @RequestHeader(value = 'x-authorization-code') String organizationAuthCode
+                                               @RequestHeader(value = 'x-organization-pin') String organizationPin
   )
 
   @RequestMapping(method = GET, value = '/organizations')
@@ -42,7 +42,7 @@ interface OrganizationClient {
       @RequestParam(name = 'authorization_code', required = false) String authorizationCode,
       @RequestParam(name = 'name', required = false) String orgName,
       @RequestParam(name = 'approval_status', required = false) ApprovalStatus approvalStatus,
-      @RequestHeader(name = 'x-authorization-code', required = false) String organizationAuthCode,
+      @RequestHeader(name = 'x-organization-pin', required = false) String organizationPin,
       Pageable pageable
   )
 }

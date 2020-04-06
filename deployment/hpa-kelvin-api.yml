@@ -1,0 +1,12 @@
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: kelvin-api
+spec:
+  targetCPUUtilizationPercentage: 75
+  maxReplicas: 12
+  minReplicas: 4
+  scaleTargetRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: kelvin-api

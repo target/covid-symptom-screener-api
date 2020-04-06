@@ -126,4 +126,7 @@ jobs:
           cd deployment
           kubectl get svc | grep -q kelvin-api || kubectl create -f svc-kelvin-api.yml
           kubectl apply -f deploy-kelvin-api.yml
+          if [ "$ENV" = "prod" ]; then
+            kubectl apply -f hpa-kelvin-api.yml
+          fi
           kubectl get services -o wide

@@ -208,7 +208,7 @@ paths:
       description: Lists a set of temperatures
       parameters:
         -
-          name: organization_id
+          name: authorization_code
           description: Filter on the id of the organization
           in: query
           required: false
@@ -232,7 +232,7 @@ paths:
       summary: Create a set of temperatures
       description: Creates a set of temperatures
       parameters:
-        - $ref: '#/components/parameters/authorization_code'
+        - $ref: '#/components/parameters/organization_pin'
       requestBody:
         required: true
         content:
@@ -628,10 +628,10 @@ components:
       schema:
         type: string
 
-    authorization_code:
-      name: x-authorization-code
+    organization_pin:
+      name: x-organization-pin
       in: header
-      description: Header for the organization that allows for creation of temperatures.
+      description: Header for the organization pin that allows for creation of temperatures.
       required: true
       schema:
         type: string
