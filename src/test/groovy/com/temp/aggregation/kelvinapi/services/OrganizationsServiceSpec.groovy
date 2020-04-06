@@ -13,9 +13,9 @@ import org.springframework.data.domain.PageRequest
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class OrganizationServiceSpec extends Specification {
+class OrganizationsServiceSpec extends Specification {
 
-  OrganizationService service = new OrganizationService(
+  OrganizationsService service = new OrganizationsService(
       repository: Mock(OrganizationRepository)
   )
 

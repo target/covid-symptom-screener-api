@@ -15,7 +15,7 @@ import spock.lang.Unroll
 import static com.temp.aggregation.kelvinapi.domain.Role.ADMIN
 import static com.temp.aggregation.kelvinapi.domain.Role.USER
 
-class UserRoleControllerFunctionalSpec extends BaseIntegrationSpec {
+class UserRolesControllerFunctionalSpec extends BaseIntegrationSpec {
   @Autowired
   UserRoleRepository userRoleRepository
 

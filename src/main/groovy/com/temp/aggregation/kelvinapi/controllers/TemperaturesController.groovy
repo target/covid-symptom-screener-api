@@ -4,7 +4,7 @@ import com.temp.aggregation.kelvinapi.domain.ListResponse
 import com.temp.aggregation.kelvinapi.domain.Temperature
 import com.temp.aggregation.kelvinapi.domain.TemperatureUpdate
 import com.temp.aggregation.kelvinapi.security.UserRoleService
-import com.temp.aggregation.kelvinapi.services.OrganizationService
+import com.temp.aggregation.kelvinapi.services.OrganizationsService
 import com.temp.aggregation.kelvinapi.services.TemperaturesService
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,7 +28,7 @@ class TemperaturesController {
   TemperaturesService temperaturesService
 
   @Autowired
-  OrganizationService organizationService
+  OrganizationsService organizationService
 
   @Autowired
   UserRoleService userRoleService

@@ -7,7 +7,7 @@ import com.temp.aggregation.kelvinapi.domain.OrganizationUpdate
 import com.temp.aggregation.kelvinapi.exceptions.ServiceError
 import com.temp.aggregation.kelvinapi.exceptions.ServiceException
 import com.temp.aggregation.kelvinapi.security.UserRoleService
-import com.temp.aggregation.kelvinapi.services.OrganizationService
+import com.temp.aggregation.kelvinapi.services.OrganizationsService
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Page
@@ -22,9 +22,9 @@ import static com.temp.aggregation.kelvinapi.domain.Role.ADMIN
 
 @RestController
 @Slf4j
-class OrganizationController {
+class OrganizationsController {
   @Autowired
-  OrganizationService service
+  OrganizationsService service
 
   @Autowired
   UserRoleService userRoleService

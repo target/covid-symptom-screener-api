@@ -19,7 +19,7 @@ class TemperaturesService {
   TemperatureRepository temperatureRepository
 
   @Autowired
-  OrganizationService organizationService
+  OrganizationsService organizationService
 
   Page<Temperature> getTemperaturesFor(String organizationId, Pageable pageable) {
     if (organizationId) {

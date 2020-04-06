@@ -24,7 +24,7 @@ import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.SUSPENDED
 import static org.springframework.data.domain.ExampleMatcher.GenericPropertyMatchers.contains
 
 @Service
-class OrganizationService {
+class OrganizationsService {
 
   @Autowired
   OrganizationRepository repository

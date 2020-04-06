@@ -21,7 +21,7 @@ import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.SUSPENDED
 import static com.temp.aggregation.kelvinapi.domain.OrganizationSector.OTHER_PRIVATE_BUSINESS
 import static com.temp.aggregation.kelvinapi.domain.Role.ADMIN
 
-class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
+class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
 
   @Autowired
   OrganizationClient client

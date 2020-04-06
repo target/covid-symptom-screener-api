@@ -23,7 +23,7 @@ import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.*
 import static com.temp.aggregation.kelvinapi.domain.Role.ADMIN
 import static org.springframework.data.domain.Sort.Direction.ASC
 
-class TemperatureControllerFunctionalSpec extends BaseIntegrationSpec {
+class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
   @Autowired
   TemperatureClient client
 

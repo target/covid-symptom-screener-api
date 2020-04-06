@@ -47,7 +47,7 @@ openapi: 3.0.0
 info:
   title: temperatures-v1
   description: API to collect temperatures
-  version: 0.1.0
+  version: 1.0.2
 servers:
   - url: https://kelvin.test.com/v1
     description: Production
@@ -59,6 +59,10 @@ tags:
     description: Creation and approval of organizations
   - name: Temperatures
     description: Ingestion and management of temperatures
+  - name: Roles
+    description: Management of user roles
+  - name: Enumerations
+    description: Retrieval of enumerations
 
 paths:
   /organizations:
@@ -302,7 +306,7 @@ paths:
         - $ref: '#/components/parameters/size'
         - $ref: '#/components/parameters/sort'
       tags:
-        - UserRoles
+        - Roles
       summary: Find user roles
       description: Find user roles by role or email address.
       responses:
@@ -321,7 +325,7 @@ paths:
             schema:
               $ref: '#/components/schemas/user-role'
       tags:
-        - UserRoles
+        - Roles
       summary: Create or update user role
       description: Create or update user role
       responses:
@@ -341,7 +345,7 @@ paths:
             type: string
           description: An email associated with a user Google account to delete the role for.
       tags:
-        - UserRoles
+        - Roles
       summary: Deletes a user role
       description: Deletes a specific user role
       responses:
@@ -352,7 +356,7 @@ paths:
   /user-roles/current:
     get:
       tags:
-        - UserRoles
+        - Roles
       summary: Find the user role of the currently authenticated user.
       description: Find the user role of the currently authenticated user.
       responses:
@@ -364,6 +368,47 @@ paths:
                 $ref: '#/components/schemas/user-role'
         <<: *get-responses
 
+  /enumerations:
+    parameters:
+      - $ref: '#/components/parameters/authorization'
+    get:
+      tags:
+        - Enumerations
+      summary: List enumerations
+      description: Lists a set of enumerations
+      responses:
+        200:
+          description: Returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/enumeration_list_response'
+        <<: *standard-responses
+
+  /enumerations/{name}:
+    parameters:
+      - $ref: '#/components/parameters/authorization'
+    get:
+      tags:
+        - Enumerations
+      summary: Get an enumeration
+      description: Get a single enumeration
+      parameters:
+        -
+          in: path
+          name: name
+          required: true
+          schema:
+            type: string
+          description: Name of the enumeration you want to retrieve
+      responses:
+        200:
+          description: Returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/enumeration'
+        <<: *get-responses
 components:
   schemas:
 
@@ -545,6 +590,33 @@ components:
             $ref: '#/components/schemas/user-role'
         total:
           description: Total matching user-role objects
+          type: integer
+
+    enumeration:
+      type: object
+      description: A list of values for an enumeration.
+      properties:
+        name:
+          description: Name of the enumeration
+          type: string
+        values:
+          description: List of values
+          type: array
+          items:
+            description: List of string values
+            type: string
+
+    enumeration_list_response:
+      type: object
+      description: A list of enumerations.
+      properties:
+        results:
+          description: enumerations returned.
+          type: array
+          items:
+            $ref: '#/components/schemas/enumeration'
+        total:
+          description: Total matching enumeration objects
           type: integer
 
   parameters:
