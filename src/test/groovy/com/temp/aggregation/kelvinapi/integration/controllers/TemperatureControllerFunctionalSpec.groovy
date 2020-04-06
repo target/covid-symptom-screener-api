@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import spock.lang.Unroll
 
+import static com.temp.aggregation.kelvinapi.domain.OrganizationSector.OTHER_PRIVATE_BUSINESS
 import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.*
 import static org.springframework.data.domain.Sort.Direction.ASC
 
@@ -88,7 +89,8 @@ class TemperatureControllerFunctionalSpec extends BaseIntegrationSpec {
             orgName: 'testOrg',
             contactName: 'Joe',
             contactEmail: 'joe@test.com',
-            approvalStatus: APPROVED
+            approvalStatus: APPROVED,
+            sector: OTHER_PRIVATE_BUSINESS
         )
     )
 
@@ -136,7 +138,8 @@ class TemperatureControllerFunctionalSpec extends BaseIntegrationSpec {
             orgName: 'testOrg',
             contactName: 'Joe',
             contactEmail: 'joe@test.com',
-            approvalStatus: approvalStatus
+            approvalStatus: approvalStatus,
+            sector: OTHER_PRIVATE_BUSINESS
         )
     )
 
@@ -179,7 +182,8 @@ class TemperatureControllerFunctionalSpec extends BaseIntegrationSpec {
             orgName: 'testOrg',
             contactName: 'Joe',
             contactEmail: 'joe@test.com',
-            approvalStatus: APPROVED
+            approvalStatus: APPROVED,
+            sector: OTHER_PRIVATE_BUSINESS
         )
     )
     Temperature temperature = new Temperature(
@@ -216,7 +220,8 @@ class TemperatureControllerFunctionalSpec extends BaseIntegrationSpec {
             approvalStatus: APPROVED,
             taxId: '111',
             contactName: 'Test User',
-            contactEmail: 'testuser@email.com'
+            contactEmail: 'testuser@email.com',
+            sector: OTHER_PRIVATE_BUSINESS
         )
     )
     List<Temperature> temperatures = [

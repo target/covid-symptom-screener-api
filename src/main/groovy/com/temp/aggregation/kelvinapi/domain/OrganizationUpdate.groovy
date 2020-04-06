@@ -17,4 +17,6 @@ class OrganizationUpdate {
   String contactJobTitle
   String contactPhone
   ApprovalStatus approvalStatus = ApprovalStatus.APPLIED
+  @NotNull
+  OrganizationSector sector
 }

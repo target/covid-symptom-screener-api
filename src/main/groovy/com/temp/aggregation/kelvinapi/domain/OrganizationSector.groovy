@@ -1,0 +1,10 @@
+package com.temp.aggregation.kelvinapi.domain
+
+enum OrganizationSector {
+  EDUCATIONAL_SERVICES,
+  HEALTH_CARE,
+  SOCIAL_ASSISTANCE,
+  OTHER_STATE_OR_LOCAL_GOVERNMENT,
+  OTHER_NON_PROFIT,
+  OTHER_PRIVATE_BUSINESS
+}

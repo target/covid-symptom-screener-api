@@ -18,6 +18,7 @@ import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.APPLIED
 import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.APPROVED
 import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.REJECTED
 import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.SUSPENDED
+import static com.temp.aggregation.kelvinapi.domain.OrganizationSector.OTHER_PRIVATE_BUSINESS
 import static com.temp.aggregation.kelvinapi.domain.Role.ADMIN
 
 class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
@@ -53,6 +54,7 @@ class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
         contactPhone: '555-555-5555',
         contactJobTitle: 'very important person',
         orgName: 'Target',
+        sector: OTHER_PRIVATE_BUSINESS
     )
 
     when:
@@ -76,7 +78,8 @@ class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
         taxId: '1',
         contactName: 'Joe',
         contactEmail: 'joe@test.com',
-        approvalStatus: ApprovalStatus.APPLIED)
+        approvalStatus: ApprovalStatus.APPLIED,
+        sector: OTHER_PRIVATE_BUSINESS)
     )
 
     when:
@@ -95,7 +98,8 @@ class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
         taxId: '1',
         contactName: 'Joe',
         contactEmail: 'joe@test.com',
-        approvalStatus: ApprovalStatus.APPLIED)
+        approvalStatus: ApprovalStatus.APPLIED,
+        sector: OTHER_PRIVATE_BUSINESS)
     )
     UserRole currentTestUserRole = userRoleRepository.findById('test-adminA@email.com').orElse(null)
     userRoleRepository.deleteById('test-adminA@email.com')
@@ -119,7 +123,8 @@ class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
         taxId: '1',
         contactName: 'Joe',
         contactEmail: 'joe@test.com',
-        approvalStatus: ApprovalStatus.APPLIED)
+        approvalStatus: ApprovalStatus.APPLIED,
+        sector: OTHER_PRIVATE_BUSINESS)
     )
     OrganizationUpdate update = new OrganizationUpdate(
         taxId: '123',
@@ -128,6 +133,7 @@ class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
         contactPhone: '555-555-5555',
         contactJobTitle: 'very important person',
         orgName: 'Target',
+        sector: OTHER_PRIVATE_BUSINESS
     )
 
     when:
@@ -157,7 +163,8 @@ class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
         contactName: 'Joe',
         contactPhone: '555-555-5555',
         contactEmail: 'joe@test.com',
-        approvalStatus: initialStatus)
+        approvalStatus: initialStatus,
+        sector: OTHER_PRIVATE_BUSINESS)
     )
     OrganizationUpdate update = new OrganizationUpdate(
         taxId: '123',
@@ -166,7 +173,8 @@ class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
         contactPhone: '555-555-5555',
         contactJobTitle: 'very important person',
         orgName: 'Target',
-        approvalStatus: newStatus
+        approvalStatus: newStatus,
+        sector: OTHER_PRIVATE_BUSINESS
     )
 
     when:
@@ -201,7 +209,8 @@ class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
         new OrganizationUpdate(
             taxId: 'tax-id',
             orgName: 'org-name',
-            approvalStatus: APPROVED
+            approvalStatus: APPROVED,
+            sector: OTHER_PRIVATE_BUSINESS
         )
     )
 
@@ -224,35 +233,45 @@ class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
             taxId: '1',
             contactName: 'Joe',
             contactEmail: 'joe@test.com',
-            approvalStatus: ApprovalStatus.APPLIED),
+            approvalStatus: ApprovalStatus.APPLIED,
+            sector: OTHER_PRIVATE_BUSINESS
+        ),
         new Organization(
             orgName: 'Walmart',
             authorizationCode: 'cde',
             taxId: '2',
             contactName: 'Joe',
             contactEmail: 'joe@test.com',
-            approvalStatus: APPROVED),
+            approvalStatus: APPROVED,
+            sector: OTHER_PRIVATE_BUSINESS
+        ),
         new Organization(
             orgName: 'Cub Foods',
             authorizationCode: 'def',
             taxId: '3',
             contactName: 'Joe',
             contactEmail: 'joe@test.com',
-            approvalStatus: ApprovalStatus.APPLIED),
+            approvalStatus: ApprovalStatus.APPLIED,
+            sector: OTHER_PRIVATE_BUSINESS
+        ),
         new Organization(
             orgName: 'Target Plaza',
             authorizationCode: 'efg',
             taxId: '4',
             contactName: 'Joe',
             contactEmail: 'joe@test.com',
-            approvalStatus: APPROVED),
+            approvalStatus: APPROVED,
+            sector: OTHER_PRIVATE_BUSINESS
+        ),
         new Organization(
             orgName: 'Lunds & Byerlys',
             authorizationCode: 'fgh',
             taxId: '5',
             contactName: 'Joe',
             contactEmail: 'joe@test.com',
-            approvalStatus: APPROVED),
+            approvalStatus: APPROVED,
+            sector: OTHER_PRIVATE_BUSINESS
+        ),
     ])
 
     when:
@@ -286,14 +305,18 @@ class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
             orgName: 'test org a',
             contactName: 'Joe',
             contactEmail: 'joe@test.com',
-            approvalStatus: APPROVED),
+            approvalStatus: APPROVED,
+            sector: OTHER_PRIVATE_BUSINESS
+        ),
         new Organization(
             authorizationCode: 'otherAuthCode',
             taxId: 'taxIdB',
             orgName: 'test org b',
             contactName: 'Joe',
             contactEmail: 'joe@test.com',
-            approvalStatus: APPROVED)
+            approvalStatus: APPROVED,
+            sector: OTHER_PRIVATE_BUSINESS
+        )
     ])
 
     when:
