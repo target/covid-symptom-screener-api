@@ -9,7 +9,7 @@ on:
     branches:
       - master
   release:
-    types: [published]
+    types: [published,edited]
 
 # Environment variables available to all jobs and steps in this workflow
 env:
@@ -47,7 +47,7 @@ jobs:
           echo "::set-env name=ENV::prod"
           echo "::set-env name=GKE_CLUSTER::cluster-prod"
           echo "::set-env name=GKE_ZONE_OR_REGION::$GKE_ZONE_PROD"
-          echo "::set-env name=IMAGE_TAG::`$(echo $GITHUB_REF | cut -d / -f 3)`"
+          echo "::set-env name=IMAGE_TAG::`echo ${GITHUB_REF} | cut -d / -f 3`"
           echo "::set-env name=POSTGRES_PASSWORD::${{ secrets.POSTGRES_PASSWORD_PROD }}"
           export IMAGE_PATH="$REGISTRY_HOSTNAME"/"$GCP_PROJECT_ID"/"$IMAGE":"$IMAGE_TAG"
           echo "::set-env name=IMAGE_PATH::$IMAGE_PATH"
