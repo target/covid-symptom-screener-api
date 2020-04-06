@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://10.62.112.3:5432/kelvin-db
+    url: jdbc:postgresql://10.62.112.7:5432/kelvin-db
     driver-class-name: org.postgresql.Driver
     username: kelvin_rw
     password: __POSTGRES_PASSWORD__
