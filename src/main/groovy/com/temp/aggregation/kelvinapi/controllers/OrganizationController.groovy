@@ -76,7 +76,8 @@ class OrganizationController {
     log.info('Request to list organizations')
 
     if (userRoleService.currentUserHasRole(ADMIN)) {
-      Page<Organization> page = service.find(authorizationCode, taxId, orgName, approvalStatus, pageable)
+      String orgPin = authorizationCode ?: organizationPin
+      Page<Organization> page = service.find(orgPin, taxId, orgName, approvalStatus, pageable)
       return new ListResponse<Organization>(results: page.content, total: page.totalElements)
     }
 

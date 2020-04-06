@@ -277,7 +277,7 @@ class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
 
     when:
     ResponseEntity<ListResponse<Organization>> response =
-        client.searchOrganizations(taxId, authorizationCode, orgName, status, 'orgAuthCode', pageable)
+        client.searchOrganizations(taxId, authorizationCode, orgName, status, orgPin, pageable)
 
     then:
     response.statusCode == HttpStatus.OK
@@ -285,14 +285,16 @@ class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
     response.body.results*.taxId == expectedIds
 
     where:
-    authorizationCode | taxId | orgName  | status                 | expectedIds
-    'abc'             | null  | null     | null                   | ['1']
-    null              | '2'   | null     | null                   | ['2']
-    null              | null  | 'Target' | null                   | ['1', '4']
-    null              | '1'   | 'Target' | null                   | ['1']
-    null              | null  | null     | ApprovalStatus.APPLIED | ['1', '3']
-    null              | null  | 'Target' | APPROVED               | ['4']
-    null              | null  | null     | APPROVED               | ['2', '4', '5']
+    authorizationCode | orgPin | taxId | orgName  | status   | expectedIds
+    'abc'             | null   | null  | null     | null     | ['1']
+    'abc'             | 'fgh'  | null  | null     | null     | ['1']
+    null              | 'fgh'  | null  | null     | null     | ['5']
+    null              | null   | '2'   | null     | null     | ['2']
+    null              | null   | null  | 'Target' | null     | ['1', '4']
+    null              | null   | '1'   | 'Target' | null     | ['1']
+    null              | null   | null  | null     | APPLIED  | ['1', '3']
+    null              | null   | null  | 'Target' | APPROVED | ['4']
+    null              | null   | null  | null     | APPROVED | ['2', '4', '5']
   }
 
   void 'search by non-admin user filters by org auth code in header'() {
