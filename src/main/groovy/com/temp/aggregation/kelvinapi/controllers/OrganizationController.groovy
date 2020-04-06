@@ -4,6 +4,8 @@ import com.temp.aggregation.kelvinapi.domain.ApprovalStatus
 import com.temp.aggregation.kelvinapi.domain.ListResponse
 import com.temp.aggregation.kelvinapi.domain.Organization
 import com.temp.aggregation.kelvinapi.domain.OrganizationUpdate
+import com.temp.aggregation.kelvinapi.exceptions.ServiceError
+import com.temp.aggregation.kelvinapi.exceptions.ServiceException
 import com.temp.aggregation.kelvinapi.security.UserRoleService
 import com.temp.aggregation.kelvinapi.services.OrganizationService
 import groovy.util.logging.Slf4j
@@ -68,7 +70,7 @@ class OrganizationController {
       @RequestParam(name = 'authorization_code', required = false) String authorizationCode,
       @RequestParam(name = 'name', required = false) String orgName,
       @RequestParam(name = 'approval_status', required = false) ApprovalStatus approvalStatus,
-      @RequestHeader(value = 'x-authorization-code', required = false) String organisationCode,
+      @RequestHeader(value = 'x-authorization-code', required = false) String organizationPin,
       Pageable pageable
   ) {
     log.info('Request to list organizations')
@@ -77,8 +79,12 @@ class OrganizationController {
       Page<Organization> page = service.find(authorizationCode, taxId, orgName, approvalStatus, pageable)
       return new ListResponse<Organization>(results: page.content, total: page.totalElements)
     }
+
+    if (!organizationPin) {
+      throw new ServiceException(ServiceError.UNAUTHORIZED)
+    }
     // filter by auth code in header
-    Page<Organization> page = service.find(organisationCode, taxId, orgName, approvalStatus, pageable)
+    Page<Organization> page = service.find(organizationPin, taxId, orgName, approvalStatus, pageable)
     return new ListResponse<Organization>(results: page.content, total: page.totalElements)
   }
 }

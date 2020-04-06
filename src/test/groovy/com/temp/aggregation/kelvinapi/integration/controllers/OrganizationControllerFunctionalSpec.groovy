@@ -43,6 +43,7 @@ class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void cleanup() {
     repository.deleteAll()
+    userRoleRepository.deleteAll()
   }
 
   void 'create organization'() {
@@ -326,6 +327,22 @@ class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
     response.statusCode == HttpStatus.OK
     response.body.total == 1
     response.body.results*.id == savedOrgs.findAll { it.authorizationCode == 'orgAuthCode' }*.id
+
+    cleanup: 'restore admin role to test user'
+    userRoleRepository.save(currentTestUserRole)
+  }
+
+  void 'search by non-admin requires auth code in header'() {
+    given: 'remove the admin role from the test user'
+    UserRole currentTestUserRole = userRoleRepository.findById('test-adminA@email.com').orElse(null)
+    userRoleRepository.deleteById('test-adminA@email.com')
+
+    when:
+    client.searchOrganizations(null, 'orgAuthCode', null, APPROVED, null, PageRequest.of(0, 10))
+
+    then:
+    FeignException e = thrown(FeignException)
+    e.status() == HttpStatus.FORBIDDEN.value()
 
     cleanup: 'restore admin role to test user'
     userRoleRepository.save(currentTestUserRole)

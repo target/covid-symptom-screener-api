@@ -4,10 +4,12 @@ import com.temp.aggregation.kelvinapi.domain.ErrorResponse
 import com.temp.aggregation.kelvinapi.domain.ListResponse
 import com.temp.aggregation.kelvinapi.domain.Organization
 import com.temp.aggregation.kelvinapi.domain.Temperature
+import com.temp.aggregation.kelvinapi.domain.UserRole
 import com.temp.aggregation.kelvinapi.integration.BaseIntegrationSpec
 import com.temp.aggregation.kelvinapi.integration.testclients.TemperatureClient
 import com.temp.aggregation.kelvinapi.repositories.OrganizationRepository
 import com.temp.aggregation.kelvinapi.repositories.TemperatureRepository
+import com.temp.aggregation.kelvinapi.repositories.UserRoleRepository
 import feign.FeignException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Page
@@ -18,6 +20,7 @@ import spock.lang.Unroll
 
 import static com.temp.aggregation.kelvinapi.domain.OrganizationSector.OTHER_PRIVATE_BUSINESS
 import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.*
+import static com.temp.aggregation.kelvinapi.domain.Role.ADMIN
 import static org.springframework.data.domain.Sort.Direction.ASC
 
 class TemperatureControllerFunctionalSpec extends BaseIntegrationSpec {
@@ -30,8 +33,19 @@ class TemperatureControllerFunctionalSpec extends BaseIntegrationSpec {
   @Autowired
   OrganizationRepository organizationRepository
 
+  @Autowired
+  UserRoleRepository userRoleRepository
+
+  void setup() {
+    cleanup()
+    userRoleRepository.save(
+        new UserRole(emailAddress: 'test-adminA@email.com', role: ADMIN)
+    )
+  }
+
   void cleanup() {
     temperatureRepository.deleteAll()
+    userRoleRepository.deleteAll()
   }
 
   void 'can get temperatures by org id'() {
@@ -311,5 +325,17 @@ class TemperatureControllerFunctionalSpec extends BaseIntegrationSpec {
 
     and:
     temperatureRepository.findById(saved.last().id).orElse(null) == null
+  }
+
+  void 'get temperatures is restricted to admin user'() {
+    given:
+    userRoleRepository.deleteById('test-adminA@email.com')
+
+    when:
+    client.getTemperatures()
+
+    then:
+    FeignException e = thrown(FeignException)
+    e.status() == HttpStatus.FORBIDDEN.value()
   }
 }

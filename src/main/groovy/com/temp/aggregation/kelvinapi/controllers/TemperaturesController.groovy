@@ -3,6 +3,7 @@ package com.temp.aggregation.kelvinapi.controllers
 import com.temp.aggregation.kelvinapi.domain.ListResponse
 import com.temp.aggregation.kelvinapi.domain.Temperature
 import com.temp.aggregation.kelvinapi.domain.TemperatureUpdate
+import com.temp.aggregation.kelvinapi.security.UserRoleService
 import com.temp.aggregation.kelvinapi.services.OrganizationService
 import com.temp.aggregation.kelvinapi.services.TemperaturesService
 import groovy.util.logging.Slf4j
@@ -29,6 +30,9 @@ class TemperaturesController {
   @Autowired
   OrganizationService organizationService
 
+  @Autowired
+  UserRoleService userRoleService
+
   @GetMapping('/temperatures/{id}')
   @ResponseStatus(HttpStatus.OK)
   Temperature getTemperature(@PathVariable(value = 'id') String temperatureId) {
@@ -38,9 +42,12 @@ class TemperaturesController {
 
   @GetMapping('/temperatures')
   @ResponseStatus(HttpStatus.OK)
-  ListResponse<Temperature> getTemperatures(@RequestParam('organization_id') String organizationId,
-                                            Pageable pageable) {
+  ListResponse<Temperature> getTemperatures(
+      @RequestParam(name = 'organization_id', required = false) String organizationId,
+      Pageable pageable
+  ) {
     log.info("Request to list temperatures with organization $organizationId")
+    userRoleService.requireAdmin()
 
     Page<Temperature> temperatures = temperaturesService.getTemperaturesFor(organizationId, pageable)
     return new ListResponse<Temperature>(results: temperatures.content, total: temperatures.totalElements)

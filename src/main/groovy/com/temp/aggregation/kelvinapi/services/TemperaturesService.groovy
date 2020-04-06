@@ -22,7 +22,10 @@ class TemperaturesService {
   OrganizationService organizationService
 
   Page<Temperature> getTemperaturesFor(String organizationId, Pageable pageable) {
-    return temperatureRepository.findAllByOrganizationId(organizationId, pageable)
+    if (organizationId) {
+      return temperatureRepository.findAllByOrganizationId(organizationId, pageable)
+    }
+    return temperatureRepository.findAll(pageable)
   }
 
   List<Temperature> saveAll(List<TemperatureUpdate> temperatures, String organizationAuthCode) {
