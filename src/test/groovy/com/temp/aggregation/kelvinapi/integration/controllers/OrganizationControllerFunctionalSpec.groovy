@@ -1,6 +1,7 @@
 package com.temp.aggregation.kelvinapi.integration.controllers
 
 import com.temp.aggregation.kelvinapi.domain.*
+import com.temp.aggregation.kelvinapi.exceptions.ServiceError
 import com.temp.aggregation.kelvinapi.integration.BaseIntegrationSpec
 import com.temp.aggregation.kelvinapi.integration.testclients.OrganizationClient
 import com.temp.aggregation.kelvinapi.repositories.OrganizationRepository
@@ -13,7 +14,10 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import spock.lang.Unroll
 
+import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.APPLIED
 import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.APPROVED
+import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.REJECTED
+import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.SUSPENDED
 import static com.temp.aggregation.kelvinapi.domain.Role.ADMIN
 
 class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
@@ -107,7 +111,7 @@ class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
     userRoleRepository.save(currentTestUserRole)
   }
 
-  void 'update organization'() {
+  void 'update organization succeeds'() {
     setup:
     Organization organization = repository.save(new Organization(
         orgName: 'Target',
@@ -141,6 +145,49 @@ class OrganizationControllerFunctionalSpec extends BaseIntegrationSpec {
     response.body.createdBy
     response.body.lastModified
     response.body.lastModifiedBy
+  }
+
+  @Unroll
+  void 'organization update with invalid state change throws exception'() {
+    given:
+    Organization organization = repository.save(new Organization(
+        orgName: 'Target',
+        authorizationCode: 'abc',
+        taxId: '123',
+        contactName: 'Joe',
+        contactPhone: '555-555-5555',
+        contactEmail: 'joe@test.com',
+        approvalStatus: initialStatus)
+    )
+    OrganizationUpdate update = new OrganizationUpdate(
+        taxId: '123',
+        contactName: 'Joe',
+        contactEmail: 'joe@target.com',
+        contactPhone: '555-555-5555',
+        contactJobTitle: 'very important person',
+        orgName: 'Target',
+        approvalStatus: newStatus
+    )
+
+    when:
+    client.updateOrganization(organization.id, update)
+
+    then:
+    FeignException e = thrown(FeignException)
+    e.status() == ServiceError.INVALID_ORGANIZATION_STATE_CHANGE.httpStatus.value()
+
+    cleanup:
+    repository.deleteById(organization.id)
+
+    where:
+    initialStatus | newStatus
+    APPLIED       | SUSPENDED
+    APPROVED      | APPLIED
+    APPROVED      | REJECTED
+    REJECTED      | APPROVED
+    REJECTED      | SUSPENDED
+    SUSPENDED     | APPLIED
+    SUSPENDED     | REJECTED
   }
 
   void 'update fails for non-admin user'() {

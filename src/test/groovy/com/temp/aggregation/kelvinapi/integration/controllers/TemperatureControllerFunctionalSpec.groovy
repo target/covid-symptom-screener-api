@@ -8,13 +8,15 @@ import com.temp.aggregation.kelvinapi.integration.BaseIntegrationSpec
 import com.temp.aggregation.kelvinapi.integration.testclients.TemperatureClient
 import com.temp.aggregation.kelvinapi.repositories.OrganizationRepository
 import com.temp.aggregation.kelvinapi.repositories.TemperatureRepository
+import feign.FeignException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import spock.lang.Unroll
 
-import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.APPROVED
+import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.*
 import static org.springframework.data.domain.Sort.Direction.ASC
 
 class TemperatureControllerFunctionalSpec extends BaseIntegrationSpec {
@@ -121,6 +123,50 @@ class TemperatureControllerFunctionalSpec extends BaseIntegrationSpec {
 
     cleanup:
     organizationRepository.deleteById(savedOrg.id)
+  }
+
+  @Unroll
+  void 'save temperatures with unapproved org fails'() {
+    given:
+    String orgAuthCode = 'auth1'
+    Organization savedOrg = organizationRepository.save(
+        new Organization(
+            authorizationCode: orgAuthCode,
+            taxId: '11111',
+            orgName: 'testOrg',
+            contactName: 'Joe',
+            contactEmail: 'joe@test.com',
+            approvalStatus: approvalStatus
+        )
+    )
+
+    List<Temperature> temperatures = [
+        new Temperature(
+            temperature: 98.6,
+            userId: 'test-user-a',
+            latitude: 44.934940,
+            longitude: -93.158660
+        ),
+        new Temperature(
+            temperature: 100.5,
+            userId: 'test-user-b',
+            latitude: 44.934941,
+            longitude: -93.158661
+        )
+    ]
+
+    when:
+    client.saveTemperatures(orgAuthCode, temperatures)
+
+    then:
+    FeignException e = thrown(FeignException)
+    e.status() == HttpStatus.FORBIDDEN.value()
+
+    cleanup:
+    organizationRepository.deleteById(savedOrg.id)
+
+    where:
+    approvalStatus << [APPLIED, REJECTED, SUSPENDED]
   }
 
   void 'save temperature with an org name  does not persist name'() {

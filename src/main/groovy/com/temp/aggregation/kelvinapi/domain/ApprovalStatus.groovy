@@ -1,5 +1,5 @@
 package com.temp.aggregation.kelvinapi.domain
 
 enum ApprovalStatus {
-  APPLIED, APPROVED, SUSPENDED
+  APPLIED, APPROVED, SUSPENDED, REJECTED
 }

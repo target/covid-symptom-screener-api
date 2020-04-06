@@ -19,6 +19,8 @@ import java.security.SecureRandom
 
 import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.APPLIED
 import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.APPROVED
+import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.REJECTED
+import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.SUSPENDED
 import static org.springframework.data.domain.ExampleMatcher.GenericPropertyMatchers.contains
 
 @Service
@@ -48,6 +50,9 @@ class OrganizationService {
 
   Organization save(String id, OrganizationUpdate organizationUpdate) {
     Organization organization = getOrganization(id)
+    if (organization) {
+      validateStateChange(organization, organizationUpdate)
+    }
     if (!organization.authorizationCode && organizationUpdate.approvalStatus == APPROVED) {
       organization.authorizationCode = generateAuthorizationCode()
     }
@@ -92,5 +97,30 @@ class OrganizationService {
     String base36 = Integer.toString(RANDOM_NUM.nextInt(Integer.MAX_VALUE), 36)
     Integer.toString(RANDOM_NUM.nextInt(Integer.MAX_VALUE), 36)
     return base36.padLeft(5, '0').take(5)
+  }
+
+  private void validateStateChange(Organization current, OrganizationUpdate updated) {
+    boolean valid = true
+    switch (current.approvalStatus) {
+      case APPLIED:
+        valid = [APPLIED, APPROVED, REJECTED].contains(updated.approvalStatus)
+        break
+      case APPROVED:
+        valid = [APPROVED, SUSPENDED].contains(updated.approvalStatus)
+        break
+      case REJECTED:
+        valid = [REJECTED, APPLIED].contains(updated.approvalStatus)
+        break
+      case SUSPENDED:
+        valid = [SUSPENDED, APPROVED].contains(updated.approvalStatus)
+        break
+      default:
+        // we have bad data; shouldn't happen
+        throw new ServiceException(ServiceError.UNEXPECTED_ERROR)
+    }
+
+    if (!valid) {
+      throw new ServiceException(ServiceError.INVALID_ORGANIZATION_STATE_CHANGE)
+    }
   }
 }

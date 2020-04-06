@@ -27,6 +27,9 @@ class TemperaturesService {
 
   List<Temperature> saveAll(List<TemperatureUpdate> temperatures, String organizationAuthCode) {
     Organization organization = organizationService.getApprovedOrganizationByAuthCode(organizationAuthCode)
+    if (!organization) {
+      throw new ServiceException(ServiceError.ORGANIZATION_NOT_APPROVED)
+    }
     return temperatureRepository.saveAll(
         temperatures.collect { temperatureUpdate ->
           Temperature temperature = new Temperature()
