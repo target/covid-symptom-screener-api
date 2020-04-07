@@ -37,7 +37,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
     // ensure test user admin role is there
     // should be written at app startup, but protect from other tests
     userRoleRepository.save(
-        new UserRole(emailAddress: 'test-adminA@email.com', role: ADMIN)
+        new UserRoleDTO(emailAddress: 'test-adminA@email.com', role: ADMIN)
     )
   }
 
@@ -48,7 +48,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void 'create organization'() {
     setup:
-    OrganizationDTO update = new OrganizationDTO(
+    Organization update = new Organization(
         taxId: '123',
         contactName: 'Ops Guy',
         contactEmail: 'opsGuy@target.com',
@@ -59,7 +59,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
     )
 
     when:
-    ResponseEntity<OrganizationDTO> response = client.createOrganization(update)
+    ResponseEntity<Organization> response = client.createOrganization(update)
 
     then:
     response.statusCode == HttpStatus.CREATED
@@ -73,7 +73,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void 'get organization'() {
     setup:
-    Organization organization = repository.save(new Organization(
+    OrganizationDTO organization = repository.save(new OrganizationDTO(
         orgName: 'Target',
         authorizationCode: 'abc',
         taxId: '1',
@@ -84,7 +84,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
     )
 
     when:
-    ResponseEntity<OrganizationDTO> response = client.getOrganization(organization.id, 'abc')
+    ResponseEntity<Organization> response = client.getOrganization(organization.id, 'abc')
 
     then:
     response.statusCode == HttpStatus.OK
@@ -93,7 +93,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void 'get organization with mismatched org auth code fails for non admin'() {
     setup:
-    Organization organization = repository.save(new Organization(
+    OrganizationDTO organization = repository.save(new OrganizationDTO(
         orgName: 'Target',
         authorizationCode: 'abc',
         taxId: '1',
@@ -102,7 +102,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
         approvalStatus: ApprovalStatus.APPLIED,
         sector: OTHER_PRIVATE_BUSINESS)
     )
-    UserRole currentTestUserRole = userRoleRepository.findById('test-adminA@email.com').orElse(null)
+    UserRoleDTO currentTestUserRole = userRoleRepository.findById('test-adminA@email.com').orElse(null)
     userRoleRepository.deleteById('test-adminA@email.com')
 
     when:
@@ -118,7 +118,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void 'update organization succeeds'() {
     setup:
-    Organization organization = repository.save(new Organization(
+    OrganizationDTO organization = repository.save(new OrganizationDTO(
         orgName: 'Target',
         authorizationCode: 'abc',
         taxId: '1',
@@ -127,7 +127,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
         approvalStatus: ApprovalStatus.APPLIED,
         sector: OTHER_PRIVATE_BUSINESS)
     )
-    OrganizationDTO update = new OrganizationDTO(
+    Organization update = new Organization(
         taxId: '123',
         contactName: 'Ops Guy',
         contactEmail: 'opsGuy@target.com',
@@ -138,7 +138,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
     )
 
     when:
-    ResponseEntity<OrganizationDTO> response = client.updateOrganization(organization.id, update)
+    ResponseEntity<Organization> response = client.updateOrganization(organization.id, update)
 
     then:
     response.statusCode == HttpStatus.OK
@@ -157,7 +157,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
   @Unroll
   void 'organization update with invalid state change throws exception'() {
     given:
-    Organization organization = repository.save(new Organization(
+    OrganizationDTO organization = repository.save(new OrganizationDTO(
         orgName: 'Target',
         authorizationCode: 'abc',
         taxId: '123',
@@ -167,7 +167,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
         approvalStatus: initialStatus,
         sector: OTHER_PRIVATE_BUSINESS)
     )
-    OrganizationDTO update = new OrganizationDTO(
+    Organization update = new Organization(
         taxId: '123',
         contactName: 'Joe',
         contactEmail: 'joe@target.com',
@@ -201,13 +201,13 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void 'update fails for non-admin user'() {
     given: 'remove the admin role from the test user'
-    UserRole currentTestUserRole = userRoleRepository.findById('test-adminA@email.com').orElse(null)
+    UserRoleDTO currentTestUserRole = userRoleRepository.findById('test-adminA@email.com').orElse(null)
     userRoleRepository.deleteById('test-adminA@email.com')
 
     when:
     client.updateOrganization(
         'some-org',
-        new OrganizationDTO(
+        new Organization(
             taxId: 'tax-id',
             orgName: 'org-name',
             approvalStatus: APPROVED,
@@ -230,7 +230,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
     setup:
     Pageable pageable = PageRequest.of(0, 20)
     repository.saveAll([
-        new Organization(
+        new OrganizationDTO(
             orgName: 'Target',
             authorizationCode: 'abc',
             taxId: '1',
@@ -239,7 +239,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
             approvalStatus: ApprovalStatus.APPLIED,
             sector: OTHER_PRIVATE_BUSINESS
         ),
-        new Organization(
+        new OrganizationDTO(
             orgName: 'Walmart',
             authorizationCode: 'cde',
             taxId: '2',
@@ -248,7 +248,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
             approvalStatus: APPROVED,
             sector: OTHER_PRIVATE_BUSINESS
         ),
-        new Organization(
+        new OrganizationDTO(
             orgName: 'Cub Foods',
             authorizationCode: 'def',
             taxId: '3',
@@ -257,7 +257,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
             approvalStatus: ApprovalStatus.APPLIED,
             sector: OTHER_PRIVATE_BUSINESS
         ),
-        new Organization(
+        new OrganizationDTO(
             orgName: 'Target Plaza',
             authorizationCode: 'efg',
             taxId: '4',
@@ -266,7 +266,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
             approvalStatus: APPROVED,
             sector: OTHER_PRIVATE_BUSINESS
         ),
-        new Organization(
+        new OrganizationDTO(
             orgName: 'Lunds & Byerlys',
             authorizationCode: 'fgh',
             taxId: '5',
@@ -278,7 +278,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
     ])
 
     when:
-    ResponseEntity<ListResponse<OrganizationDTO>> response =
+    ResponseEntity<ListResponse<Organization>> response =
         client.searchOrganizations(taxId, authorizationCode, orgName, status, orgPin, pageable)
 
     then:
@@ -301,10 +301,10 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void 'search by non-admin user filters by org auth code in header'() {
     given: 'remove the admin role from the test user'
-    UserRole currentTestUserRole = userRoleRepository.findById('test-adminA@email.com').orElse(null)
+    UserRoleDTO currentTestUserRole = userRoleRepository.findById('test-adminA@email.com').orElse(null)
     userRoleRepository.deleteById('test-adminA@email.com')
-    List<Organization> savedOrgs = repository.saveAll([
-        new Organization(
+    List<OrganizationDTO> savedOrgs = repository.saveAll([
+        new OrganizationDTO(
             authorizationCode: 'orgAuthCode',
             taxId: 'taxIdA',
             orgName: 'test org a',
@@ -313,7 +313,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
             approvalStatus: APPROVED,
             sector: OTHER_PRIVATE_BUSINESS
         ),
-        new Organization(
+        new OrganizationDTO(
             authorizationCode: 'otherAuthCode',
             taxId: 'taxIdB',
             orgName: 'test org b',
@@ -325,7 +325,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
     ])
 
     when:
-    ResponseEntity<ListResponse<OrganizationDTO>> response = client.searchOrganizations(null, null, null, APPROVED, 'orgAuthCode', PageRequest.of(0, 10))
+    ResponseEntity<ListResponse<Organization>> response = client.searchOrganizations(null, null, null, APPROVED, 'orgAuthCode', PageRequest.of(0, 10))
 
     then:
     response.statusCode == HttpStatus.OK
@@ -338,7 +338,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void 'search by non-admin requires auth code in header'() {
     given: 'remove the admin role from the test user'
-    UserRole currentTestUserRole = userRoleRepository.findById('test-adminA@email.com').orElse(null)
+    UserRoleDTO currentTestUserRole = userRoleRepository.findById('test-adminA@email.com').orElse(null)
     userRoleRepository.deleteById('test-adminA@email.com')
 
     when:

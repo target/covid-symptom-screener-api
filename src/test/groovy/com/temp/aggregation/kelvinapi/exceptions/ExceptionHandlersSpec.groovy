@@ -1,7 +1,7 @@
 package com.temp.aggregation.kelvinapi.exceptions
 
 import com.temp.aggregation.kelvinapi.domain.ErrorResponse
-import com.temp.aggregation.kelvinapi.domain.Organization
+import com.temp.aggregation.kelvinapi.domain.OrganizationDTO
 import org.hibernate.validator.internal.engine.ConstraintViolationImpl
 import org.hibernate.validator.internal.engine.path.PathImpl
 import org.springframework.core.MethodParameter
@@ -135,14 +135,14 @@ class ExceptionHandlersSpec extends Specification {
   @Unroll
   void 'handleConstraintViolationException'() {
     given:
-    ConstraintViolation<Organization> violation = ConstraintViolationImpl.forBeanValidation(
+    ConstraintViolation<OrganizationDTO> violation = ConstraintViolationImpl.forBeanValidation(
         'not null',
         [:],
         [:],
         'may not be null',
-        Organization,
-        new Organization(),
-        new Organization(),
+        OrganizationDTO,
+        new OrganizationDTO(),
+        new OrganizationDTO(),
         null,
         propertyPath,
         null,

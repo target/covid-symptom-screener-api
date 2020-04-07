@@ -1,7 +1,7 @@
 package com.temp.aggregation.kelvinapi.services
 
-import com.temp.aggregation.kelvinapi.domain.AssessmentQuestion
 import com.temp.aggregation.kelvinapi.domain.AssessmentQuestionDTO
+import com.temp.aggregation.kelvinapi.domain.AssessmentQuestion
 import com.temp.aggregation.kelvinapi.domain.AssessmentQuestionStatus
 import com.temp.aggregation.kelvinapi.exceptions.ServiceError
 import com.temp.aggregation.kelvinapi.exceptions.ServiceException
@@ -18,60 +18,60 @@ class AssessmentQuestionService {
   @Autowired
   AssessmentQuestionRepository repository
 
-  List<AssessmentQuestionDTO> findByStatuses(List<AssessmentQuestionStatus> statuses) {
+  List<AssessmentQuestion> findByStatuses(List<AssessmentQuestionStatus> statuses) {
     Sort questionSort = Sort.by('sortPriority', 'displayValue')
-    List<AssessmentQuestion> assessmentQuestions = repository.findAllByStatusIn(statuses, questionSort)
+    List<AssessmentQuestionDTO> assessmentQuestions = repository.findAllByStatusIn(statuses, questionSort)
     return assessmentQuestions.collect {
-      AssessmentQuestionDTO dto = new AssessmentQuestionDTO()
+      AssessmentQuestion dto = new AssessmentQuestion()
       InvokerHelper.setProperties(dto, it.properties)
       return dto
     }
   }
 
-  AssessmentQuestionDTO create(AssessmentQuestionDTO assessmentQuestionDTO) {
+  AssessmentQuestion create(AssessmentQuestion assessmentQuestionDTO) {
     if (repository.existsByDisplayValue(assessmentQuestionDTO.displayValue)) {
       throw new ServiceException(ServiceError.ASSESSMENT_QUESTION_CONFLICT)
     }
-    AssessmentQuestion assessmentQuestion = new AssessmentQuestion()
+    AssessmentQuestionDTO assessmentQuestion = new AssessmentQuestionDTO()
     InvokerHelper.setProperties(assessmentQuestion, assessmentQuestionDTO.properties)
-    AssessmentQuestion saved = repository.save(assessmentQuestion)
-    AssessmentQuestionDTO dto = new AssessmentQuestionDTO()
+    AssessmentQuestionDTO saved = repository.save(assessmentQuestion)
+    AssessmentQuestion dto = new AssessmentQuestion()
     InvokerHelper.setProperties(dto, saved.properties)
     return dto
   }
 
-  AssessmentQuestionDTO findById(String id) {
-    AssessmentQuestion question = repository.findById(id).orElseThrow {
+  AssessmentQuestion findById(String id) {
+    AssessmentQuestionDTO question = repository.findById(id).orElseThrow {
       new ServiceException(ServiceError.NOT_FOUND, 'AssessmentQuestion')
     }
-    AssessmentQuestionDTO dto = new AssessmentQuestionDTO()
+    AssessmentQuestion dto = new AssessmentQuestion()
     InvokerHelper.setProperties(dto, question.properties)
     return dto
   }
 
-  AssessmentQuestionDTO save(String id, AssessmentQuestionDTO assessmentQuestionDTO) {
-    AssessmentQuestion assessmentQuestion = repository.findById(id).orElseThrow {
+  AssessmentQuestion save(String id, AssessmentQuestion assessmentQuestionDTO) {
+    AssessmentQuestionDTO assessmentQuestion = repository.findById(id).orElseThrow {
       new ServiceException(ServiceError.NOT_FOUND, 'AssessmentQuestion')
     }
     setUpdatableProperties(assessmentQuestion, assessmentQuestionDTO)
-    AssessmentQuestion saved = repository.save(assessmentQuestion)
-    AssessmentQuestionDTO dto = new AssessmentQuestionDTO()
+    AssessmentQuestionDTO saved = repository.save(assessmentQuestion)
+    AssessmentQuestion dto = new AssessmentQuestion()
     InvokerHelper.setProperties(dto, saved.properties)
     return dto
   }
 
-  AssessmentQuestionDTO disable(String id) {
-    AssessmentQuestion existing = repository.findById(id).orElseThrow {
+  AssessmentQuestion disable(String id) {
+    AssessmentQuestionDTO existing = repository.findById(id).orElseThrow {
       new ServiceException(ServiceError.NOT_FOUND, 'AssessmentQuestion')
     }
     existing.status = DISABLED
-    AssessmentQuestion saved = repository.save(existing)
-    AssessmentQuestionDTO dto = new AssessmentQuestionDTO()
+    AssessmentQuestionDTO saved = repository.save(existing)
+    AssessmentQuestion dto = new AssessmentQuestion()
     InvokerHelper.setProperties(dto, saved.properties)
     return dto
   }
 
-  private void setUpdatableProperties(AssessmentQuestion question, AssessmentQuestionDTO dto) {
+  private void setUpdatableProperties(AssessmentQuestionDTO question, AssessmentQuestion dto) {
     question.displayValue = dto.displayValue
     question.status = dto.status
     question.sortPriority = dto.sortPriority

@@ -1,34 +1,17 @@
 package com.temp.aggregation.kelvinapi.domain
 
-import groovy.transform.EqualsAndHashCode
-import org.springframework.data.annotation.CreatedBy
-import org.springframework.data.annotation.CreatedDate
-import org.springframework.data.annotation.LastModifiedBy
-import org.springframework.data.annotation.LastModifiedDate
-import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonInclude
 
-import javax.persistence.*
-import java.time.Instant
+import javax.validation.constraints.NotNull
 
-@Entity
-@EntityListeners(AuditingEntityListener)
-@Table(
-    name = 'user_roles',
-    indexes = [
-        @Index(name = 'user_email_index', columnList = 'emailAddress', unique = true)
-    ]
-)
-@EqualsAndHashCode
-class UserRole {
-  @Id
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+class UserRole implements Audited {
+
+  @NotNull(message = 'email_address must not be null')
   String emailAddress
+
+  @NotNull(message = 'role must not be null')
   Role role
-  @CreatedDate
-  Instant created
-  @CreatedBy
-  String createdBy
-  @LastModifiedDate
-  Instant lastModified
-  @LastModifiedBy
-  String lastModifiedBy
 }

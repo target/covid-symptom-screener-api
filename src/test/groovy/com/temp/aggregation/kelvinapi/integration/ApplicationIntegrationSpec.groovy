@@ -1,6 +1,6 @@
 package com.temp.aggregation.kelvinapi.integration
 
-import com.temp.aggregation.kelvinapi.domain.UserRole
+import com.temp.aggregation.kelvinapi.domain.UserRoleDTO
 import com.temp.aggregation.kelvinapi.repositories.UserRoleRepository
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -19,7 +19,7 @@ class ApplicationIntegrationSpec extends BaseIntegrationSpec {
 
   void 'pre-authorized admins are saved on startup'() {
     given:
-    List<UserRole> all = userRoleRepository.findAll()
+    List<UserRoleDTO> all = userRoleRepository.findAll()
 
     expect:
     all.size() == 2

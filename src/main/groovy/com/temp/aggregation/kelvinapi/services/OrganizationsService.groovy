@@ -1,8 +1,8 @@
 package com.temp.aggregation.kelvinapi.services
 
 import com.temp.aggregation.kelvinapi.domain.ApprovalStatus
-import com.temp.aggregation.kelvinapi.domain.Organization
 import com.temp.aggregation.kelvinapi.domain.OrganizationDTO
+import com.temp.aggregation.kelvinapi.domain.Organization
 import com.temp.aggregation.kelvinapi.exceptions.ServiceError
 import com.temp.aggregation.kelvinapi.exceptions.ServiceException
 import com.temp.aggregation.kelvinapi.repositories.OrganizationRepository
@@ -26,30 +26,30 @@ class OrganizationsService {
   private static final Random RANDOM_NUM =
       new SecureRandom(ByteBuffer.allocate(8).putLong(System.currentTimeMillis()).array())
 
-  OrganizationDTO create(OrganizationDTO organizationDTO) {
+  Organization create(Organization organizationDTO) {
     if (repository.findByTaxId(organizationDTO.taxId)) {
       throw new ServiceException(ServiceError.ORGANIZATION_CONFLICT, organizationDTO.taxId)
     }
-    Organization organization = new Organization()
+    OrganizationDTO organization = new OrganizationDTO()
     InvokerHelper.setProperties(organization, organizationDTO.properties)
     organization.approvalStatus = APPLIED
-    Organization saved = repository.save(organization)
-    OrganizationDTO dto = new OrganizationDTO()
+    OrganizationDTO saved = repository.save(organization)
+    Organization dto = new Organization()
     InvokerHelper.setProperties(dto, saved.properties)
     return dto
   }
 
-  OrganizationDTO getOrganization(String id) {
-    Organization organization = repository.findById(id).orElseThrow {
+  Organization getOrganization(String id) {
+    OrganizationDTO organization = repository.findById(id).orElseThrow {
       new ServiceException(ServiceError.NOT_FOUND, 'Organization')
     }
-    OrganizationDTO dto = new OrganizationDTO()
+    Organization dto = new Organization()
     InvokerHelper.setProperties(dto, organization.properties)
     return dto
   }
 
-  OrganizationDTO save(String id, OrganizationDTO organizationDTO) {
-    Organization organization = repository.findById(id).orElseThrow {
+  Organization save(String id, Organization organizationDTO) {
+    OrganizationDTO organization = repository.findById(id).orElseThrow {
       new ServiceException(ServiceError.NOT_FOUND, 'Organization')
     }
 
@@ -61,36 +61,36 @@ class OrganizationsService {
 
     copyUpdateablePropertiesToExisting(organization, organizationDTO)
 
-    Organization saved = repository.save(organization)
-    OrganizationDTO dto = new OrganizationDTO()
+    OrganizationDTO saved = repository.save(organization)
+    Organization dto = new Organization()
     InvokerHelper.setProperties(dto, saved.properties)
     return dto
   }
 
-  Page<OrganizationDTO> find(String authorizationCode, String taxId, String name, ApprovalStatus status, Pageable pageable) {
+  Page<Organization> find(String authorizationCode, String taxId, String name, ApprovalStatus status, Pageable pageable) {
     ExampleMatcher matcher = ExampleMatcher
         .matchingAll()
         .withMatcher('orgName', contains().ignoreCase())
-    Organization example = new Organization(
+    OrganizationDTO example = new OrganizationDTO(
         authorizationCode: authorizationCode,
         taxId: taxId,
         orgName: name,
         approvalStatus: status)
-    Page<Organization> found = repository.findAll(Example.of(example, matcher), pageable)
-    List<OrganizationDTO> organizationDTOS = found.content.collect { organization ->
-      OrganizationDTO dto = new OrganizationDTO()
+    Page<OrganizationDTO> found = repository.findAll(Example.of(example, matcher), pageable)
+    List<Organization> organizationDTOS = found.content.collect { organization ->
+      Organization dto = new Organization()
       InvokerHelper.setProperties(dto, organization.properties)
       return dto
     }
     return new PageImpl<>(organizationDTOS, found.pageable, found.totalElements)
   }
 
-  OrganizationDTO getApprovedOrganizationByAuthCode(String authorizationCode) {
-    Organization org = repository.findByApprovalStatusAndAuthorizationCode(APPROVED, authorizationCode)
+  Organization getApprovedOrganizationByAuthCode(String authorizationCode) {
+    OrganizationDTO org = repository.findByApprovalStatusAndAuthorizationCode(APPROVED, authorizationCode)
     if (!org) {
       throw new ServiceException(ServiceError.ORGANIZATION_NOT_APPROVED)
     }
-    OrganizationDTO dto = new OrganizationDTO()
+    Organization dto = new Organization()
     InvokerHelper.setProperties(dto, org.properties)
     return dto
   }
@@ -113,7 +113,7 @@ class OrganizationsService {
     return base36.padLeft(5, '0').take(5)
   }
 
-  private void validateStateChange(Organization current, OrganizationDTO dto) {
+  private void validateStateChange(OrganizationDTO current, Organization dto) {
     boolean valid
     switch (current.approvalStatus) {
       case APPLIED:
@@ -138,7 +138,7 @@ class OrganizationsService {
     }
   }
 
-  private void copyUpdateablePropertiesToExisting(Organization existing, OrganizationDTO dto) {
+  private void copyUpdateablePropertiesToExisting(OrganizationDTO existing, Organization dto) {
     existing.approvalStatus = dto.approvalStatus
     existing.contactEmail = dto.contactEmail
     existing.contactJobTitle = dto.contactJobTitle

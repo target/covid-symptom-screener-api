@@ -2,7 +2,7 @@ package com.temp.aggregation.kelvinapi.controllers
 
 import com.temp.aggregation.kelvinapi.domain.ListResponse
 import com.temp.aggregation.kelvinapi.domain.Role
-import com.temp.aggregation.kelvinapi.domain.UserRoleDTO
+import com.temp.aggregation.kelvinapi.domain.UserRole
 import com.temp.aggregation.kelvinapi.security.UserRoleService
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,18 +25,18 @@ class UserRoleController {
 
   @GetMapping('/user-roles')
   @ResponseStatus(HttpStatus.OK)
-  ListResponse<UserRoleDTO> findUserRoles(@RequestParam(name = 'role', required = false) Role role,
-                                          @RequestParam(name = 'email_address', required = false) String emailAddress,
-                                          Pageable pageable) {
+  ListResponse<UserRole> findUserRoles(@RequestParam(name = 'role', required = false) Role role,
+                                       @RequestParam(name = 'email_address', required = false) String emailAddress,
+                                       Pageable pageable) {
     log.info("Request to list user roles with email $emailAddress and role $role")
 
-    Page<UserRoleDTO> page = userRoleService.findBy(role, emailAddress, pageable)
-    return new ListResponse<UserRoleDTO>(results: page.content, total: page.totalElements)
+    Page<UserRole> page = userRoleService.findBy(role, emailAddress, pageable)
+    return new ListResponse<UserRole>(results: page.content, total: page.totalElements)
   }
 
   @GetMapping('/user-roles/current')
   @ResponseStatus(HttpStatus.OK)
-  UserRoleDTO getCurrentUserRole() {
+  UserRole getCurrentUserRole() {
     log.info("Request to get user's current role")
 
     return userRoleService.getCurrentUserRole()
@@ -44,7 +44,7 @@ class UserRoleController {
 
   @PostMapping('/user-roles')
   @ResponseStatus(HttpStatus.CREATED)
-  UserRoleDTO createOrUpdateUserRole(@RequestBody UserRoleDTO userRoleDTO) {
+  UserRole createOrUpdateUserRole(@RequestBody UserRole userRoleDTO) {
     log.info("Request to create a user role for user ${userRoleDTO.emailAddress} and role ${userRoleDTO.role}")
 
     userRoleService.requireAdmin()

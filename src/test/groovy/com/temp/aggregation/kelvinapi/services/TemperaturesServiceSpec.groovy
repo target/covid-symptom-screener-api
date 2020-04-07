@@ -1,6 +1,6 @@
 package com.temp.aggregation.kelvinapi.services
 
-import com.temp.aggregation.kelvinapi.domain.Temperature
+import com.temp.aggregation.kelvinapi.domain.TemperatureDTO
 import com.temp.aggregation.kelvinapi.repositories.TemperatureRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -17,10 +17,10 @@ class TemperaturesServiceSpec extends Specification {
     setup:
     String orgId = 'o1'
     Pageable pageable = PageRequest.of(0, 20)
-    Page<Temperature> expected = new PageImpl<>([])
+    Page<TemperatureDTO> expected = new PageImpl<>([])
 
     when:
-    Page<Temperature> results = service.getTemperaturesFor(orgId, pageable)
+    Page<TemperatureDTO> results = service.getTemperaturesFor(orgId, pageable)
 
     then:
     1 * service.temperatureRepository.findAllByOrganizationId(orgId, pageable) >> expected
@@ -31,10 +31,10 @@ class TemperaturesServiceSpec extends Specification {
   void 'get temperatures'() {
     setup:
     Pageable pageable = PageRequest.of(0, 20)
-    Page<Temperature> expected = new PageImpl<>([])
+    Page<TemperatureDTO> expected = new PageImpl<>([])
 
     when:
-    Page<Temperature> results = service.getTemperaturesFor(null, pageable)
+    Page<TemperatureDTO> results = service.getTemperaturesFor(null, pageable)
 
     then:
     1 * service.temperatureRepository.findAll(pageable) >> expected

@@ -1,16 +1,26 @@
 package com.temp.aggregation.kelvinapi.domain
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonInclude
+import org.hibernate.annotations.GenericGenerator
 
-import javax.validation.constraints.NotNull
+import javax.persistence.*
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonInclude(JsonInclude.Include.NON_NULL)
-class AssessmentQuestionAnswerDTO  implements AuditedDTO {
+@Entity
+@Table(
+    name = 'assessment_question_answers'
+)
+class AssessmentQuestionAnswerDTO {
+  @Id
+  @GeneratedValue(generator = 'system-uuid')
+  @GenericGenerator(name = 'system-uuid', strategy = 'uuid')
   String id
-  @NotNull(message = 'question must not be null')
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = 'question_id', referencedColumnName = 'id')
   AssessmentQuestionDTO question
-  @NotNull(message = 'answer must not be null')
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = 'temperature_id', referencedColumnName = 'id')
+  TemperatureDTO temperature
+
   Boolean answer
 }

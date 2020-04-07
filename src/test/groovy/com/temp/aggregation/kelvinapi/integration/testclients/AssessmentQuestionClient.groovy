@@ -1,6 +1,6 @@
 package com.temp.aggregation.kelvinapi.integration.testclients
 
-import com.temp.aggregation.kelvinapi.domain.AssessmentQuestionDTO
+import com.temp.aggregation.kelvinapi.domain.AssessmentQuestion
 import com.temp.aggregation.kelvinapi.domain.AssessmentQuestionStatus
 import com.temp.aggregation.kelvinapi.domain.ErrorResponse
 import org.springframework.cloud.openfeign.FeignClient
@@ -19,20 +19,20 @@ import static org.springframework.web.bind.annotation.RequestMethod.*
 )
 interface AssessmentQuestionClient {
   @RequestMapping(method = POST, value = '/questions')
-  ResponseEntity<AssessmentQuestionDTO> createQuestion(@RequestBody AssessmentQuestionDTO assessmentQuestionDTO)
+  ResponseEntity<AssessmentQuestion> createQuestion(@RequestBody AssessmentQuestion assessmentQuestionDTO)
 
   @RequestMapping(method = PUT, value = '/questions/{id}')
-  ResponseEntity<AssessmentQuestionDTO> updateQuestion(@PathVariable(value = 'id') String id,
-                                                       @RequestBody AssessmentQuestionDTO assessmentQuestionDTO)
+  ResponseEntity<AssessmentQuestion> updateQuestion(@PathVariable(value = 'id') String id,
+                                                    @RequestBody AssessmentQuestion assessmentQuestionDTO)
 
   @RequestMapping(method = GET, value = '/questions/{id}')
-  ResponseEntity<AssessmentQuestionDTO> getById(@PathVariable(value = 'id') String id)
+  ResponseEntity<AssessmentQuestion> getById(@PathVariable(value = 'id') String id)
 
   @RequestMapping(method = GET, value = '/questions/{id}')
   ResponseEntity<ErrorResponse> getByIdFails(@PathVariable(value = 'id') String id)
 
   @RequestMapping(method = GET, value = '/questions')
-  ResponseEntity<List<AssessmentQuestionDTO>> getQuestions(@RequestParam(value = 'status') List<AssessmentQuestionStatus> statuses)
+  ResponseEntity<List<AssessmentQuestion>> getQuestions(@RequestParam(value = 'status') List<AssessmentQuestionStatus> statuses)
 
   @RequestMapping(method = DELETE, value = '/questions/{id}')
   ResponseEntity<Void> disable(@PathVariable(value = 'id') String id)

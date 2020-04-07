@@ -32,8 +32,8 @@ class AssessmentQuestionAnswerRepositoryIntegrationSpec extends BaseIntegrationS
 
   void 'can save an AssessmentQuestionAnswer if temperature and question exist'() {
     given:
-    Organization savedOrganization = organizationRepository.save(
-        new Organization(
+    OrganizationDTO savedOrganization = organizationRepository.save(
+        new OrganizationDTO(
             orgName: 'testOrg',
             taxId: '111',
             contactName: 'Test Contact',
@@ -43,8 +43,8 @@ class AssessmentQuestionAnswerRepositoryIntegrationSpec extends BaseIntegrationS
     )
     savedOrganization.approvalStatus = APPROVED
     savedOrganization = organizationRepository.save(savedOrganization)
-    Temperature savedTemperature = temperatureRepository.save(
-        new Temperature(
+    TemperatureDTO savedTemperature = temperatureRepository.save(
+        new TemperatureDTO(
             temperature: 98.6f,
             userId: 'test-user',
             latitude: 44.934941,
@@ -52,15 +52,15 @@ class AssessmentQuestionAnswerRepositoryIntegrationSpec extends BaseIntegrationS
             organizationId: savedOrganization.id
         )
     )
-    AssessmentQuestion savedQuestion = assessmentQuestionRepository.save(
-        new AssessmentQuestion(
+    AssessmentQuestionDTO savedQuestion = assessmentQuestionRepository.save(
+        new AssessmentQuestionDTO(
             displayValue: 'Wha?'
         )
     )
 
     when:
-    AssessmentQuestionAnswer answer = repository.save(
-        new AssessmentQuestionAnswer(
+    AssessmentQuestionAnswerDTO answer = repository.save(
+        new AssessmentQuestionAnswerDTO(
             temperature: savedTemperature,
             question: savedQuestion,
             answer: true

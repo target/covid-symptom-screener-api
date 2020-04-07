@@ -1,6 +1,6 @@
 package com.temp.aggregation.kelvinapi.integration.security
 
-import com.temp.aggregation.kelvinapi.domain.UserRole
+import com.temp.aggregation.kelvinapi.domain.UserRoleDTO
 import com.temp.aggregation.kelvinapi.integration.BaseIntegrationSpec
 import com.temp.aggregation.kelvinapi.repositories.UserRoleRepository
 import com.temp.aggregation.kelvinapi.security.UserRoleService
@@ -24,8 +24,8 @@ class UserRoleServiceIntegrationSpec extends BaseIntegrationSpec {
   void 'can check if user has role'() {
     given:
     userRoleRepository.saveAll([
-        new UserRole(emailAddress: 'testA@email.com', role: ADMIN),
-        new UserRole(emailAddress: 'testB@email.com', role: ADMIN)
+        new UserRoleDTO(emailAddress: 'testA@email.com', role: ADMIN),
+        new UserRoleDTO(emailAddress: 'testB@email.com', role: ADMIN)
     ])
 
     expect:

@@ -1,6 +1,6 @@
 package com.temp.aggregation.kelvinapi.listeners
 
-import com.temp.aggregation.kelvinapi.domain.UserRole
+import com.temp.aggregation.kelvinapi.domain.UserRoleDTO
 import com.temp.aggregation.kelvinapi.repositories.UserRoleRepository
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.event.ApplicationReadyEvent
@@ -18,7 +18,7 @@ class SpringContextEventListeners {
   void applicationReadyListener(ApplicationReadyEvent applicationReadyEvent) {
     applicationReadyEvent.applicationContext.getBean(UserRoleRepository).saveAll(
         preauthedAdmins.collect {
-          new UserRole(emailAddress: it, role: ADMIN)
+          new UserRoleDTO(emailAddress: it, role: ADMIN)
         }
     )
   }

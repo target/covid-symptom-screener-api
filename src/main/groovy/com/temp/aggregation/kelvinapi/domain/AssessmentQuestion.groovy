@@ -1,40 +1,18 @@
 package com.temp.aggregation.kelvinapi.domain
 
-import groovy.transform.EqualsAndHashCode
-import org.hibernate.annotations.GenericGenerator
-import org.springframework.data.annotation.CreatedBy
-import org.springframework.data.annotation.CreatedDate
-import org.springframework.data.annotation.LastModifiedBy
-import org.springframework.data.annotation.LastModifiedDate
-import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonInclude
 
-import javax.persistence.*
-import java.time.Instant
+import javax.validation.constraints.NotNull
 
 import static com.temp.aggregation.kelvinapi.domain.AssessmentQuestionStatus.ENABLED
 
-@Entity
-@Table(
-    name = 'assessment_questions'
-)
-@EntityListeners(AuditingEntityListener)
-@EqualsAndHashCode(excludes = ['answers'])
-class AssessmentQuestion {
-  @Id
-  @GeneratedValue(generator = 'system-uuid')
-  @GenericGenerator(name = 'system-uuid', strategy = 'uuid')
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+class AssessmentQuestion implements Audited {
   String id
+  @NotNull(message = 'display_value must not be null')
   String displayValue
   AssessmentQuestionStatus status = ENABLED
   int sortPriority
-  @OneToMany(mappedBy = 'question', fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-  Set<AssessmentQuestionAnswer> answers
-  @CreatedDate
-  Instant created
-  @CreatedBy
-  String createdBy
-  @LastModifiedDate
-  Instant lastModified
-  @LastModifiedBy
-  String lastModifiedBy
 }

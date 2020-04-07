@@ -1,6 +1,6 @@
 package com.temp.aggregation.kelvinapi.integration.repositories
 
-import com.temp.aggregation.kelvinapi.domain.Temperature
+import com.temp.aggregation.kelvinapi.domain.TemperatureDTO
 import com.temp.aggregation.kelvinapi.integration.BaseIntegrationSpec
 import com.temp.aggregation.kelvinapi.repositories.TemperatureRepository
 import org.springframework.beans.factory.annotation.Autowired
@@ -22,15 +22,15 @@ class TemperatureRepositoryIntegrationSpec extends BaseIntegrationSpec {
     void 'can save a list of temperatures, and retrieve them by org id'() {
         setup:
         String organizationId = 'testOrg'
-        List<Temperature> temperatures = [
-                new Temperature(
+        List<TemperatureDTO> temperatures = [
+                new TemperatureDTO(
                         organizationId: organizationId,
                         temperature: 98.6,
                         userId: 'test-user-a',
                         latitude: 44.934940,
                         longitude: -93.158660
                 ),
-                new Temperature(
+                new TemperatureDTO(
                         organizationId: organizationId,
                         temperature: 100.5,
                         userId: 'test-user-b',
@@ -40,7 +40,7 @@ class TemperatureRepositoryIntegrationSpec extends BaseIntegrationSpec {
         ]
 
         when:
-        List<Temperature> results = repository.saveAll(temperatures)
+        List<TemperatureDTO> results = repository.saveAll(temperatures)
 
         then:
         results.size() == 2
@@ -48,7 +48,7 @@ class TemperatureRepositoryIntegrationSpec extends BaseIntegrationSpec {
         !results*.timestamp.contains(null)
 
         when:
-        Page<Temperature> retrieved = repository.findAllByOrganizationId(
+        Page<TemperatureDTO> retrieved = repository.findAllByOrganizationId(
                 organizationId,
                 new PageRequest(0, 10, new Sort(ASC, ['id']))
         )

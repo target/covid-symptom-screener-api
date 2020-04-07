@@ -30,7 +30,7 @@ class AssessmentQuestionControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void setup() {
     userRoleRepository.save(
-        new UserRole(emailAddress: 'test-adminA@email.com', role: ADMIN)
+        new UserRoleDTO(emailAddress: 'test-adminA@email.com', role: ADMIN)
     )
   }
 
@@ -40,12 +40,12 @@ class AssessmentQuestionControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void 'can create an assessment question'() {
     given:
-    AssessmentQuestionDTO assessmentQuestionUpdate = new AssessmentQuestionDTO(
+    AssessmentQuestion assessmentQuestionUpdate = new AssessmentQuestion(
         displayValue: 'Wha?'
     )
 
     when:
-    ResponseEntity<AssessmentQuestionDTO> response = client.createQuestion(assessmentQuestionUpdate)
+    ResponseEntity<AssessmentQuestion> response = client.createQuestion(assessmentQuestionUpdate)
 
     then:
     response.statusCode == HttpStatus.CREATED
@@ -59,12 +59,12 @@ class AssessmentQuestionControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void 'create fails for non-admin user'() {
     given: 'remove the admin role from the test user'
-    UserRole currentTestUserRole = userRoleRepository.findById('test-adminA@email.com').orElse(null)
+    UserRoleDTO currentTestUserRole = userRoleRepository.findById('test-adminA@email.com').orElse(null)
     userRoleRepository.deleteById('test-adminA@email.com')
 
     when:
     client.createQuestion(
-        new AssessmentQuestionDTO(
+        new AssessmentQuestion(
             displayValue: 'Wha?'
         )
     )
@@ -79,16 +79,16 @@ class AssessmentQuestionControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void 'can update an assessment question'() {
     given:
-    AssessmentQuestionDTO saved = service.create(
-        new AssessmentQuestionDTO(
+    AssessmentQuestion saved = service.create(
+        new AssessmentQuestion(
             displayValue: 'Wha?'
         )
     )
 
     when:
-    ResponseEntity<AssessmentQuestionDTO> updated = client.updateQuestion(
+    ResponseEntity<AssessmentQuestion> updated = client.updateQuestion(
         saved.id,
-        new AssessmentQuestionDTO(
+        new AssessmentQuestion(
             displayValue: 'Are you kidding me?'
         )
     )
@@ -103,18 +103,18 @@ class AssessmentQuestionControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void 'update fails for non-admin user'() {
     given: 'remove the admin role from the test user'
-    AssessmentQuestionDTO saved = service.create(
-        new AssessmentQuestionDTO(
+    AssessmentQuestion saved = service.create(
+        new AssessmentQuestion(
             displayValue: 'Wha?'
         )
     )
-    UserRole currentTestUserRole = userRoleRepository.findById('test-adminA@email.com').orElse(null)
+    UserRoleDTO currentTestUserRole = userRoleRepository.findById('test-adminA@email.com').orElse(null)
     userRoleRepository.deleteById('test-adminA@email.com')
 
     when:
     client.updateQuestion(
         saved.id,
-        new AssessmentQuestionDTO(
+        new AssessmentQuestion(
             displayValue: 'Wha?'
         )
     )
@@ -129,14 +129,14 @@ class AssessmentQuestionControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void 'can retrieve question by id'() {
     given:
-    AssessmentQuestionDTO saved = service.create(
-        new AssessmentQuestionDTO(
+    AssessmentQuestion saved = service.create(
+        new AssessmentQuestion(
             displayValue: 'Wha?'
         )
     )
 
     when:
-    ResponseEntity<AssessmentQuestionDTO> response = client.getById(saved.id)
+    ResponseEntity<AssessmentQuestion> response = client.getById(saved.id)
 
     then:
     response.statusCode == HttpStatus.OK
@@ -154,27 +154,27 @@ class AssessmentQuestionControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void 'can retrieve all enabled questions in one call'() {
     given:
-    AssessmentQuestionDTO savedA = service.create(
-        new AssessmentQuestionDTO(
+    AssessmentQuestion savedA = service.create(
+        new AssessmentQuestion(
             displayValue: 'Wha?', status: ENABLED,
             sortPriority: 10
         )
     )
-    AssessmentQuestionDTO savedB = service.create(
-        new AssessmentQuestionDTO(
+    AssessmentQuestion savedB = service.create(
+        new AssessmentQuestion(
             displayValue: 'Huh?', status: ENABLED,
             sortPriority: 20
         )
     )
     service.create(
-        new AssessmentQuestionDTO(
+        new AssessmentQuestion(
             displayValue: 'Buy why?', status: DISABLED,
             sortPriority: 30
         )
     )
 
     when:
-    ResponseEntity<List<AssessmentQuestionDTO>> response = client.getQuestions([ENABLED])
+    ResponseEntity<List<AssessmentQuestion>> response = client.getQuestions([ENABLED])
 
     then:
     response.statusCode == HttpStatus.OK
@@ -187,14 +187,14 @@ class AssessmentQuestionControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void 'delete call sets status to DISABLED'() {
     given:
-    AssessmentQuestionDTO savedA = service.create(
-        new AssessmentQuestionDTO(
+    AssessmentQuestion savedA = service.create(
+        new AssessmentQuestion(
             displayValue: 'Wha?', status: ENABLED,
             sortPriority: 10
         )
     )
     service.create(
-        new AssessmentQuestionDTO(
+        new AssessmentQuestion(
             displayValue: 'Huh?', status: ENABLED,
             sortPriority: 20
         )
@@ -212,13 +212,13 @@ class AssessmentQuestionControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void 'delete fails for non-admin user'() {
     given: 'remove the admin role from the test user'
-    AssessmentQuestionDTO saved = service.create(
-        new AssessmentQuestionDTO(
+    AssessmentQuestion saved = service.create(
+        new AssessmentQuestion(
             displayValue: 'Wha?',
             sortPriority: 10
         )
     )
-    UserRole currentTestUserRole = userRoleRepository.findById('test-adminA@email.com').orElse(null)
+    UserRoleDTO currentTestUserRole = userRoleRepository.findById('test-adminA@email.com').orElse(null)
     userRoleRepository.deleteById('test-adminA@email.com')
 
     when:

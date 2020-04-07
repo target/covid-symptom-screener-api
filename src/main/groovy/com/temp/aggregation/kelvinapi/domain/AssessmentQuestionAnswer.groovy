@@ -1,26 +1,16 @@
 package com.temp.aggregation.kelvinapi.domain
 
-import org.hibernate.annotations.GenericGenerator
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonInclude
 
-import javax.persistence.*
+import javax.validation.constraints.NotNull
 
-@Entity
-@Table(
-    name = 'assessment_question_answers'
-)
-class AssessmentQuestionAnswer {
-  @Id
-  @GeneratedValue(generator = 'system-uuid')
-  @GenericGenerator(name = 'system-uuid', strategy = 'uuid')
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+class AssessmentQuestionAnswer implements Audited {
   String id
-
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = 'question_id', referencedColumnName = 'id')
+  @NotNull(message = 'question must not be null')
   AssessmentQuestion question
-
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = 'temperature_id', referencedColumnName = 'id')
-  Temperature temperature
-
+  @NotNull(message = 'answer must not be null')
   Boolean answer
 }

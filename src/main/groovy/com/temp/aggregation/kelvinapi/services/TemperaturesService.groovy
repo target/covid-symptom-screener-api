@@ -36,42 +36,42 @@ class TemperaturesService {
   EntityManager entityManager
 
   @Transactional
-  Page<TemperatureDTO> getTemperaturesFor(String organizationId, Pageable pageable) {
-    Page<Temperature> page
+  Page<Temperature> getTemperaturesFor(String organizationId, Pageable pageable) {
+    Page<TemperatureDTO> page
     if (organizationId) {
       page = temperatureRepository.findAllByOrganizationId(organizationId, pageable)
     } else {
       page = temperatureRepository.findAll(pageable)
     }
-    List<TemperatureDTO> dtos = page.content.collect { temperature ->
-      TemperatureDTO dto = buildDTOFrom(temperature)
+    List<Temperature> dtos = page.content.collect { temperature ->
+      Temperature dto = buildDTOFrom(temperature)
       return dto
     }
-    return new PageImpl<TemperatureDTO>(dtos, page.pageable, page.totalElements)
+    return new PageImpl<Temperature>(dtos, page.pageable, page.totalElements)
   }
 
   @Transactional
-  List<TemperatureDTO> saveAll(List<TemperatureDTO> temperatureDTOs, String organizationAuthCode) {
-    OrganizationDTO organizationDTO = organizationService.getApprovedOrganizationByAuthCode(organizationAuthCode)
+  List<Temperature> saveAll(List<Temperature> temperatureDTOs, String organizationAuthCode) {
+    Organization organizationDTO = organizationService.getApprovedOrganizationByAuthCode(organizationAuthCode)
     if (!organizationDTO) {
       throw new ServiceException(ServiceError.ORGANIZATION_NOT_APPROVED)
     }
-    List<Temperature> temperatures = temperatureDTOs.collect { temperatureDTO ->
-      Temperature temperature = new Temperature()
+    List<TemperatureDTO> temperatures = temperatureDTOs.collect { temperatureDTO ->
+      TemperatureDTO temperature = new TemperatureDTO()
       InvokerHelper.setProperties(temperature, temperatureDTO.properties)
       temperature.organizationId = organizationDTO.id
       populateQuestionAnswersFromDTO(temperatureDTO, temperature)
       return temperature
     }
-    List<Temperature> saved = temperatureRepository.saveAll(
+    List<TemperatureDTO> saved = temperatureRepository.saveAll(
         temperatures
     )
     return saved.collect { buildDTOFrom(it) }
   }
 
   @Transactional
-  TemperatureDTO findById(String temperatureId) {
-    Temperature temperature = temperatureRepository.findById(temperatureId)
+  Temperature findById(String temperatureId) {
+    TemperatureDTO temperature = temperatureRepository.findById(temperatureId)
         .orElseThrow { new ServiceException(ServiceError.NOT_FOUND) }
     return buildDTOFrom(temperature)
   }
@@ -81,12 +81,12 @@ class TemperaturesService {
     temperatureRepository.deleteById(temperatureId)
   }
 
-  private Temperature populateQuestionAnswersFromDTO(TemperatureDTO temperatureDTO, Temperature temperature) {
-    List<AssessmentQuestionAnswer> answers = temperatureDTO.questionAnswers.collect { questionAnswer ->
-      AssessmentQuestionDTO questionDTO = questionService.findById(questionAnswer.question.id)
-      AssessmentQuestion question = new AssessmentQuestion()
+  private TemperatureDTO populateQuestionAnswersFromDTO(Temperature temperatureDTO, TemperatureDTO temperature) {
+    List<AssessmentQuestionAnswerDTO> answers = temperatureDTO.questionAnswers.collect { questionAnswer ->
+      AssessmentQuestion questionDTO = questionService.findById(questionAnswer.question.id)
+      AssessmentQuestionDTO question = new AssessmentQuestionDTO()
       InvokerHelper.setProperties(question, questionDTO.properties)
-      return new AssessmentQuestionAnswer(
+      return new AssessmentQuestionAnswerDTO(
           temperature: temperature,
           question: question,
           answer: questionAnswer.answer
@@ -96,12 +96,12 @@ class TemperaturesService {
     return temperature
   }
 
-  private TemperatureDTO buildDTOFrom(Temperature temperature) {
-    OrganizationDTO organizationDTO = organizationService.getOrganization(temperature.organizationId)
+  private Temperature buildDTOFrom(TemperatureDTO temperature) {
+    Organization organizationDTO = organizationService.getOrganization(temperature.organizationId)
     if (!organizationDTO || organizationDTO.approvalStatus != APPROVED) {
       throw new ServiceException(ServiceError.ORGANIZATION_NOT_APPROVED)
     }
-    return new TemperatureDTO(
+    return new Temperature(
         id: temperature.id,
         organizationId: temperature.organizationId,
         organizationName: organizationDTO.orgName,
@@ -115,9 +115,9 @@ class TemperaturesService {
         lastModified: temperature.lastModified,
         lastModifiedBy: temperature.lastModifiedBy,
         questionAnswers: temperature.questionAnswers.collect { questionAnswer ->
-          AssessmentQuestionDTO questionDTO = new AssessmentQuestionDTO()
+          AssessmentQuestion questionDTO = new AssessmentQuestion()
           InvokerHelper.setProperties(questionDTO, questionAnswer.question.properties)
-          new AssessmentQuestionAnswerDTO(
+          new AssessmentQuestionAnswer(
               question: questionDTO,
               answer: questionAnswer.answer
           )

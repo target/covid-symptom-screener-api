@@ -1,45 +1,27 @@
 package com.temp.aggregation.kelvinapi.domain
 
-import org.hibernate.annotations.GenericGenerator
-import org.springframework.data.annotation.CreatedBy
-import org.springframework.data.annotation.CreatedDate
-import org.springframework.data.annotation.LastModifiedBy
-import org.springframework.data.annotation.LastModifiedDate
-import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonInclude
 
-import javax.persistence.*
-import java.time.Instant
+import javax.validation.constraints.NotBlank
+import javax.validation.constraints.NotNull
 
-@Entity
-@Table(
-    name = 'organizations',
-    indexes = [
-        @Index(name = 'auth_code_index', columnList = 'authorizationCode', unique = true),
-        @Index(name = 'tax_code_index', columnList = 'taxId', unique = true),
-        @Index(name = 'org_name_index', columnList = 'orgName', unique = true)
-    ]
-)
-@EntityListeners(AuditingEntityListener)
-class Organization {
-  @Id
-  @GeneratedValue(generator = 'system-uuid')
-  @GenericGenerator(name = 'system-uuid', strategy = 'uuid')
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+class Organization implements Audited {
   String id
   String authorizationCode
+  @NotNull(message = 'tax_id must not be null')
   String taxId
+  @NotBlank(message = 'org_name must not be blank')
   String orgName
+  @NotBlank(message = 'contact_name must not be blank')
   String contactName
+  @NotBlank(message = 'contact_email must not be blank')
   String contactEmail
   String contactJobTitle
   String contactPhone
   ApprovalStatus approvalStatus = ApprovalStatus.APPLIED
+  @NotNull(message = 'sector must not be null')
   OrganizationSector sector
-  @CreatedDate
-  Instant created
-  @CreatedBy
-  String createdBy
-  @LastModifiedDate
-  Instant lastModified
-  @LastModifiedBy
-  String lastModifiedBy
 }

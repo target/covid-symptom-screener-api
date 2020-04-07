@@ -1,7 +1,7 @@
 package com.temp.aggregation.kelvinapi.services
 
-import com.temp.aggregation.kelvinapi.domain.AssessmentQuestion
 import com.temp.aggregation.kelvinapi.domain.AssessmentQuestionDTO
+import com.temp.aggregation.kelvinapi.domain.AssessmentQuestion
 import com.temp.aggregation.kelvinapi.integration.BaseIntegrationSpec
 import com.temp.aggregation.kelvinapi.repositories.AssessmentQuestionRepository
 import org.springframework.beans.factory.annotation.Autowired
@@ -22,18 +22,18 @@ class AssessmentQuestionServiceIntegrationSpec extends BaseIntegrationSpec {
 
   void 'get all questions only returns ENABLED'() {
     given:
-    AssessmentQuestion savedA = repository.save(
-        new AssessmentQuestion(displayValue: 'What\'s up?', status: ENABLED)
+    AssessmentQuestionDTO savedA = repository.save(
+        new AssessmentQuestionDTO(displayValue: 'What\'s up?', status: ENABLED)
     )
-    AssessmentQuestion savedB = repository.save(
-        new AssessmentQuestion(displayValue: 'Just what do you think you\'re doing?', status: ENABLED)
+    AssessmentQuestionDTO savedB = repository.save(
+        new AssessmentQuestionDTO(displayValue: 'Just what do you think you\'re doing?', status: ENABLED)
     )
     repository.save(
-        new AssessmentQuestion(displayValue: 'Why would you do that?', status: DISABLED)
+        new AssessmentQuestionDTO(displayValue: 'Why would you do that?', status: DISABLED)
     )
 
     when:
-    List<AssessmentQuestionDTO> retrieved = service.findByStatuses([ENABLED])
+    List<AssessmentQuestion> retrieved = service.findByStatuses([ENABLED])
 
     then:
     retrieved.size() == 2
@@ -50,8 +50,8 @@ class AssessmentQuestionServiceIntegrationSpec extends BaseIntegrationSpec {
 
   void 'can create and defaults to ENABLED'() {
     when:
-    AssessmentQuestionDTO created = service.create(
-        new AssessmentQuestionDTO(
+    AssessmentQuestion created = service.create(
+        new AssessmentQuestion(
             displayValue: 'Are you talking to me?'
         )
     )
@@ -62,12 +62,12 @@ class AssessmentQuestionServiceIntegrationSpec extends BaseIntegrationSpec {
 
   void 'can set disabled by id'() {
     given:
-    AssessmentQuestion saved = repository.save(
-        new AssessmentQuestion(displayValue: 'What\'s up?', status: ENABLED)
+    AssessmentQuestionDTO saved = repository.save(
+        new AssessmentQuestionDTO(displayValue: 'What\'s up?', status: ENABLED)
     )
 
     when:
-    AssessmentQuestionDTO disabled = service.disable(saved.id)
+    AssessmentQuestion disabled = service.disable(saved.id)
 
     then:
     disabled.status == DISABLED

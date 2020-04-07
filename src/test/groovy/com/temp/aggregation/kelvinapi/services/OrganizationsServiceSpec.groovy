@@ -1,8 +1,8 @@
 package com.temp.aggregation.kelvinapi.services
 
 import com.temp.aggregation.kelvinapi.domain.ApprovalStatus
-import com.temp.aggregation.kelvinapi.domain.Organization
 import com.temp.aggregation.kelvinapi.domain.OrganizationDTO
+import com.temp.aggregation.kelvinapi.domain.Organization
 import com.temp.aggregation.kelvinapi.exceptions.ServiceError
 import com.temp.aggregation.kelvinapi.exceptions.ServiceException
 import com.temp.aggregation.kelvinapi.repositories.OrganizationRepository
@@ -25,7 +25,7 @@ class OrganizationsServiceSpec extends Specification {
 
   void 'create'() {
     setup:
-    OrganizationDTO update = new OrganizationDTO(
+    Organization update = new Organization(
         taxId: '123',
         contactName: 'Ops Guy',
         contactEmail: 'opsGuy@target.com',
@@ -35,7 +35,7 @@ class OrganizationsServiceSpec extends Specification {
         sector: OTHER_PRIVATE_BUSINESS
     )
 
-    Organization saved = new Organization(
+    OrganizationDTO saved = new OrganizationDTO(
         id: 'o1',
         taxId: '123',
         contactName: 'Ops Guy',
@@ -47,7 +47,7 @@ class OrganizationsServiceSpec extends Specification {
     )
 
     when:
-    OrganizationDTO organizationDTO = service.create(update)
+    Organization organizationDTO = service.create(update)
 
     then:
     1 * service.repository.findByTaxId(update.taxId) >> null
@@ -75,7 +75,7 @@ class OrganizationsServiceSpec extends Specification {
 
   void 'create does not allow duplicate tax id'() {
     setup:
-    OrganizationDTO update = new OrganizationDTO(
+    Organization update = new Organization(
         taxId: '123',
         contactName: 'Ops Guy',
         contactEmail: 'opsGuy@target.com',
@@ -90,13 +90,13 @@ class OrganizationsServiceSpec extends Specification {
     then:
     ServiceException e = thrown(ServiceException)
     e.serviceError == ServiceError.ORGANIZATION_CONFLICT
-    1 * service.repository.findByTaxId(update.taxId) >> new Organization()
+    1 * service.repository.findByTaxId(update.taxId) >> new OrganizationDTO()
     0 * _
   }
 
   void 'save sets an auth code when status is approved'() {
     setup:
-    OrganizationDTO dto = new OrganizationDTO(
+    Organization dto = new Organization(
         taxId: '123',
         contactName: 'Ops Guy',
         contactEmail: 'opsGuy@target.com',
@@ -106,7 +106,7 @@ class OrganizationsServiceSpec extends Specification {
         sector: OTHER_PRIVATE_BUSINESS,
         approvalStatus: APPROVED
     )
-    Organization existing = new Organization(
+    OrganizationDTO existing = new OrganizationDTO(
         id: 'o1',
         taxId: '123',
         contactName: 'Ops Guy',
@@ -119,7 +119,7 @@ class OrganizationsServiceSpec extends Specification {
     )
 
     when:
-    OrganizationDTO organizationDTO = service.save('o1', dto)
+    Organization organizationDTO = service.save('o1', dto)
 
     then:
     1 * service.repository.findById('o1') >> Optional.of(existing)
@@ -146,7 +146,7 @@ class OrganizationsServiceSpec extends Specification {
 
   void 'save throws exception if organization is not found'() {
     setup:
-    OrganizationDTO dto = new OrganizationDTO(
+    Organization dto = new Organization(
         taxId: '123',
         orgName: 'Target'
     )
@@ -163,13 +163,13 @@ class OrganizationsServiceSpec extends Specification {
 
   void 'save fails when unique auth code is not generated on approve update'() {
     setup:
-    OrganizationDTO dto = new OrganizationDTO(
+    Organization dto = new Organization(
         taxId: '123',
         orgName: 'Target',
         approvalStatus: ApprovalStatus.APPROVED
     )
 
-    Organization existing = new Organization(id: 'o1')
+    OrganizationDTO existing = new OrganizationDTO(id: 'o1')
 
     when:
     service.save('o1', dto)
@@ -185,10 +185,10 @@ class OrganizationsServiceSpec extends Specification {
 
   void 'get organization'() {
     when:
-    OrganizationDTO organization = service.getOrganization('o1')
+    Organization organization = service.getOrganization('o1')
 
     then:
-    1 * service.repository.findById('o1') >> Optional.of(new Organization(id: 'o1'))
+    1 * service.repository.findById('o1') >> Optional.of(new OrganizationDTO(id: 'o1'))
     0 * _
 
     organization.id == 'o1'
@@ -198,10 +198,10 @@ class OrganizationsServiceSpec extends Specification {
   void 'find by criteria'() {
     setup:
     PageRequest pageRequest = PageRequest.of(0, 20)
-    Page<OrganizationDTO> expected = new PageImpl<>([])
+    Page<Organization> expected = new PageImpl<>([])
 
     when:
-    Page<OrganizationDTO> results = service.find(authorizationCode, taxId, orgName, status, pageRequest)
+    Page<Organization> results = service.find(authorizationCode, taxId, orgName, status, pageRequest)
 
     then:
     1 * service.repository.findAll({ Example example ->
