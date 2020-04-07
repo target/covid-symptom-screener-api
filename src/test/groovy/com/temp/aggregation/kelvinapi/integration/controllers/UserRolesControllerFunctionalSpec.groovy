@@ -2,7 +2,7 @@ package com.temp.aggregation.kelvinapi.integration.controllers
 
 import com.temp.aggregation.kelvinapi.domain.ListResponse
 import com.temp.aggregation.kelvinapi.domain.UserRole
-import com.temp.aggregation.kelvinapi.domain.UserRoleUpdate
+import com.temp.aggregation.kelvinapi.domain.UserRoleDTO
 import com.temp.aggregation.kelvinapi.integration.BaseIntegrationSpec
 import com.temp.aggregation.kelvinapi.integration.testclients.UserRoleClient
 import com.temp.aggregation.kelvinapi.repositories.UserRoleRepository
@@ -32,7 +32,7 @@ class UserRolesControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void 'can get UserRole for current user'() {
     when:
-    ResponseEntity<UserRole> userRoleResponse = client.getCurrentUserRole()
+    ResponseEntity<UserRoleDTO> userRoleResponse = client.getCurrentUserRole()
 
     then:
     userRoleResponse.statusCode == HttpStatus.OK
@@ -41,17 +41,18 @@ class UserRolesControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void 'can get a list of all user roles'() {
     given:
-    List<UserRole> saved = userRoleRepository.saveAll([
+    userRoleRepository.saveAll([
         new UserRole(emailAddress: 'testA@email.com', role: ADMIN),
         new UserRole(emailAddress: 'testB@email.com', role: ADMIN)
     ])
 
     when:
-    ResponseEntity<ListResponse<UserRole>> response = client.findUserRoles(null, null)
+    ResponseEntity<ListResponse<UserRoleDTO>> response = client.findUserRoles(null, null)
 
     then:
     response.statusCode == HttpStatus.OK
-    response.body.results.containsAll(saved)
+    response.body.results.find { it.emailAddress == 'testA@email.com' }
+    response.body.results.find { it.emailAddress == 'testB@email.com' }
 
     cleanup:
     // deleting all will break tests for pre-authorized admins
@@ -68,7 +69,7 @@ class UserRolesControllerFunctionalSpec extends BaseIntegrationSpec {
     ])
 
     when:
-    ResponseEntity<ListResponse<UserRole>> response = client.findUserRoles(role, emailAddress)
+    ResponseEntity<ListResponse<UserRoleDTO>> response = client.findUserRoles(role, emailAddress)
 
     then:
     response.statusCode == HttpStatus.OK
@@ -85,12 +86,12 @@ class UserRolesControllerFunctionalSpec extends BaseIntegrationSpec {
     userRoleRepository.deleteById('testB@email.com')
 
     where:
-    role  | emailAddress       | expected
-    null  | null               | ['testA@email.com', 'testB@email.com']
-    ADMIN | null               | ['testA@email.com', 'testB@email.com']
-    null  | 'testA@email.com'  | ['testA@email.com']
-    null  | 'testB@email.com'  | ['testB@email.com']
-    ADMIN | 'testA@email.com'  | ['testA@email.com']
+    role  | emailAddress      | expected
+    null  | null              | ['testA@email.com', 'testB@email.com']
+    ADMIN | null              | ['testA@email.com', 'testB@email.com']
+    null  | 'testA@email.com' | ['testA@email.com']
+    null  | 'testB@email.com' | ['testB@email.com']
+    ADMIN | 'testA@email.com' | ['testA@email.com']
   }
 
   void 'can save a user role'() {
@@ -101,22 +102,22 @@ class UserRolesControllerFunctionalSpec extends BaseIntegrationSpec {
     ])
 
     when: 'save new role'
-    ResponseEntity<UserRole> newUserRoleResponse = client.createOrUpdateUserRole(
-        new UserRoleUpdate(emailAddress: 'testC@email.com', role: ADMIN)
+    ResponseEntity<UserRoleDTO> newUserRoleResponse = client.createOrUpdateUserRole(
+        new UserRoleDTO(emailAddress: 'testC@email.com', role: ADMIN)
     )
 
     then:
     newUserRoleResponse.statusCode == HttpStatus.CREATED
-    userRoleRepository.findById('testC@email.com').orElse(null) == newUserRoleResponse.body
+    userRoleRepository.findById('testC@email.com')
 
     when: 'save over existing'
-    ResponseEntity<UserRole> resavedUserRoleResponse = client.createOrUpdateUserRole(
-        new UserRoleUpdate(emailAddress: 'testA@email.com', role: ADMIN)
+    ResponseEntity<UserRoleDTO> resavedUserRoleResponse = client.createOrUpdateUserRole(
+        new UserRoleDTO(emailAddress: 'testA@email.com', role: ADMIN)
     )
 
     then:
     resavedUserRoleResponse.statusCode == HttpStatus.CREATED
-    userRoleRepository.findById('testA@email.com').orElse(null) == resavedUserRoleResponse.body
+    userRoleRepository.findById('testA@email.com')
 
     cleanup:
     // deleting all will break tests for pre-authorized admins
@@ -131,10 +132,10 @@ class UserRolesControllerFunctionalSpec extends BaseIntegrationSpec {
     userRoleRepository.deleteById('test-adminA@email.com')
 
     when:
-    client.createOrUpdateUserRole(new UserRoleUpdate(emailAddress: 'any@email.com', role: ADMIN))
+    client.createOrUpdateUserRole(new UserRoleDTO(emailAddress: 'any@email.com', role: ADMIN))
 
     then:
-    def e = thrown(FeignException)
+    FeignException e = thrown(FeignException)
     e.status() == HttpStatus.FORBIDDEN.value()
 
     cleanup: 'restore admin role for test user'
@@ -180,7 +181,7 @@ class UserRolesControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void 'get current user role returns saved role for ADMIN'() {
     when:
-    ResponseEntity<UserRole> response = client.getCurrentUserRole()
+    ResponseEntity<UserRoleDTO> response = client.getCurrentUserRole()
 
     then:
     response.statusCode == HttpStatus.OK
@@ -194,7 +195,7 @@ class UserRolesControllerFunctionalSpec extends BaseIntegrationSpec {
     userRoleRepository.deleteById('test-adminA@email.com')
 
     when:
-    ResponseEntity<UserRole> response = client.getCurrentUserRole()
+    ResponseEntity<UserRoleDTO> response = client.getCurrentUserRole()
 
     then:
     response.statusCode == HttpStatus.OK

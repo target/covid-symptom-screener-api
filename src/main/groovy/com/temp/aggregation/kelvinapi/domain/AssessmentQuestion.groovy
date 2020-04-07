@@ -11,28 +11,24 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import javax.persistence.*
 import java.time.Instant
 
+import static com.temp.aggregation.kelvinapi.domain.AssessmentQuestionStatus.ENABLED
+
 @Entity
 @Table(
-    name = 'temperatures',
-    indexes = [
-        @Index(name = 'organization_id_index', columnList = 'organizationId', unique = false),
-        @Index(name = 'user_id_index', columnList = 'userId', unique = false)
-    ]
+    name = 'assessment_questions'
 )
-@EqualsAndHashCode(excludes = ['questionAnswers'])
 @EntityListeners(AuditingEntityListener)
-class Temperature {
+@EqualsAndHashCode(excludes = ['answers'])
+class AssessmentQuestion {
   @Id
   @GeneratedValue(generator = 'system-uuid')
   @GenericGenerator(name = 'system-uuid', strategy = 'uuid')
   String id
-  String organizationId
-  Float temperature
-  String userId
-  float latitude
-  float longitude
-  Instant timestamp = Instant.now()
-
+  String displayValue
+  AssessmentQuestionStatus status = ENABLED
+  int sortPriority
+  @OneToMany(mappedBy = 'question', fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+  Set<AssessmentQuestionAnswer> answers
   @CreatedDate
   Instant created
   @CreatedBy
@@ -41,7 +37,4 @@ class Temperature {
   Instant lastModified
   @LastModifiedBy
   String lastModifiedBy
-
-  @OneToMany(mappedBy = 'temperature', fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-  Set<AssessmentQuestionAnswer> questionAnswers
 }

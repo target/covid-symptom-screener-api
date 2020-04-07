@@ -7,10 +7,7 @@ import org.springframework.data.annotation.LastModifiedBy
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 
-import javax.persistence.Entity
-import javax.persistence.EntityListeners
-import javax.persistence.Index
-import javax.persistence.Table
+import javax.persistence.*
 import java.time.Instant
 
 @Entity
@@ -20,10 +17,12 @@ import java.time.Instant
     indexes = [
         @Index(name = 'user_email_index', columnList = 'emailAddress', unique = true)
     ]
-
 )
 @EqualsAndHashCode
-class UserRole extends UserRoleUpdate {
+class UserRole {
+  @Id
+  String emailAddress
+  Role role
   @CreatedDate
   Instant created
   @CreatedBy

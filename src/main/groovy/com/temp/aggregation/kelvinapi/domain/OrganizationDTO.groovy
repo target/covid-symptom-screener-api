@@ -1,11 +1,16 @@
 package com.temp.aggregation.kelvinapi.domain
 
-import javax.persistence.MappedSuperclass
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonInclude
+
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
 
-@MappedSuperclass
-class OrganizationUpdate {
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+class OrganizationDTO implements AuditedDTO {
+  String id
+  String authorizationCode
   @NotNull(message = 'tax_id must not be null')
   String taxId
   @NotBlank(message = 'org_name must not be blank')
@@ -17,6 +22,6 @@ class OrganizationUpdate {
   String contactJobTitle
   String contactPhone
   ApprovalStatus approvalStatus = ApprovalStatus.APPLIED
-  @NotNull
+  @NotNull(message = 'sector must not be null')
   OrganizationSector sector
 }

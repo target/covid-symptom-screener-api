@@ -1,15 +1,15 @@
 package com.temp.aggregation.kelvinapi.integration.controllers
 
-import com.temp.aggregation.kelvinapi.domain.ErrorResponse
-import com.temp.aggregation.kelvinapi.domain.ListResponse
-import com.temp.aggregation.kelvinapi.domain.Organization
-import com.temp.aggregation.kelvinapi.domain.Temperature
-import com.temp.aggregation.kelvinapi.domain.UserRole
+import com.temp.aggregation.kelvinapi.domain.*
 import com.temp.aggregation.kelvinapi.integration.BaseIntegrationSpec
 import com.temp.aggregation.kelvinapi.integration.testclients.TemperatureClient
+import com.temp.aggregation.kelvinapi.repositories.AssessmentQuestionAnswerRepository
+import com.temp.aggregation.kelvinapi.repositories.AssessmentQuestionRepository
 import com.temp.aggregation.kelvinapi.repositories.OrganizationRepository
 import com.temp.aggregation.kelvinapi.repositories.TemperatureRepository
 import com.temp.aggregation.kelvinapi.repositories.UserRoleRepository
+import com.temp.aggregation.kelvinapi.services.AssessmentQuestionService
+import com.temp.aggregation.kelvinapi.services.TemperaturesService
 import feign.FeignException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Page
@@ -18,8 +18,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import spock.lang.Unroll
 
-import static com.temp.aggregation.kelvinapi.domain.OrganizationSector.OTHER_PRIVATE_BUSINESS
 import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.*
+import static com.temp.aggregation.kelvinapi.domain.OrganizationSector.OTHER_PRIVATE_BUSINESS
 import static com.temp.aggregation.kelvinapi.domain.Role.ADMIN
 import static org.springframework.data.domain.Sort.Direction.ASC
 
@@ -31,7 +31,19 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
   TemperatureRepository temperatureRepository
 
   @Autowired
+  TemperaturesService temperaturesService
+
+  @Autowired
   OrganizationRepository organizationRepository
+
+  @Autowired
+  AssessmentQuestionService assessmentQuestionService
+
+  @Autowired
+  AssessmentQuestionRepository assessmentQuestionRepository
+
+  @Autowired
+  AssessmentQuestionAnswerRepository assessmentQuestionAnswerRepository
 
   @Autowired
   UserRoleRepository userRoleRepository
@@ -44,29 +56,40 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
   }
 
   void cleanup() {
+    assessmentQuestionAnswerRepository.deleteAll()
+    assessmentQuestionRepository.deleteAll()
     temperatureRepository.deleteAll()
-    userRoleRepository.deleteAll()
+    organizationRepository.deleteAll()
   }
 
-  void 'can get temperatures by org id'() {
+  void 'can get temperatures by org id including associated question answers'() {
     given:
-    String organizationId = 'testOrgA'
+    Organization savedOrg = organizationRepository.save(
+        new Organization(
+            orgName: 'testOrgA',
+            taxId: '111',
+            approvalStatus: APPROVED,
+            sector: OTHER_PRIVATE_BUSINESS,
+            contactName: 'Test Contact',
+            contactEmail: 'test-contact@email.com',
+            contactPhone: '111-111-1111'
+        )
+    )
     List<Temperature> temperatures = [
         new Temperature(
-            organizationId: organizationId,
+            organizationId: savedOrg.id,
             temperature: 98.6,
             userId: 'test-user-a',
             latitude: 44.934940,
             longitude: -93.158660
         ),
         new Temperature(
-            organizationId: organizationId,
+            organizationId: savedOrg.id,
             temperature: 100.5,
             userId: 'test-user-b',
             latitude: 44.934941,
             longitude: -93.158661
-        )
-        ,
+        ),
         new Temperature(
             organizationId: 'aDifferentOrg',
             temperature: 100.5,
@@ -75,26 +98,55 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
             longitude: -93.158661
         )
     ]
-    temperatureRepository.saveAll(temperatures)
+    List<Temperature> savedTemperatures = temperatureRepository.saveAll(temperatures)
+    AssessmentQuestion savedQuestionA = assessmentQuestionRepository.save(
+        new AssessmentQuestion(
+            displayValue: 'Wha?'
+        )
+    )
+    AssessmentQuestion savedQuestionB = assessmentQuestionRepository.save(
+        new AssessmentQuestion(
+            displayValue: 'Huh?'
+        )
+    )
+
+    assessmentQuestionAnswerRepository.saveAll(savedTemperatures.collectMany { temperature ->
+      return [
+          new AssessmentQuestionAnswer(
+              temperature: temperature,
+              question: savedQuestionA,
+              answer: true
+          ),
+          new AssessmentQuestionAnswer(
+              temperature: temperature,
+              question: savedQuestionB,
+              answer: true
+          )
+      ]
+    })
 
     when:
-    ResponseEntity<ListResponse<Temperature>> response = client.getTemperatures(organizationId)
+    ResponseEntity<ListResponse<TemperatureDTO>> response = client.getTemperatures(savedOrg.id)
 
     then:
     response.statusCode == HttpStatus.OK
     response.body.total == 2
     response.body.results*.temperature.containsAll([98.6f, 100.5f])
     response.body.results*.userId.containsAll(['test-user-a', 'test-user-b'])
-    response.body.results*.organizationId.unique() == [organizationId]
-    response.body.results*.latitude.containsAll([44.934940f, 44.934941f])
-    response.body.results*.longitude.containsAll([-93.158660f, -93.158661f])
+    response.body.results*.organizationId.unique() == [savedOrg.id]
+    response.body.results*.latitude == [44.934940f, 44.934941f]
+    response.body.results*.longitude == [-93.158660f, -93.158661f]
     response.body.results*.created
     response.body.results*.createdBy
     response.body.results*.lastModified
     response.body.results*.lastModifiedBy
+    response.body.results.every { temperature ->
+      temperature.questionAnswers.find { it.question.id == savedQuestionA.id }
+      temperature.questionAnswers.find { it.question.id == savedQuestionB.id }
+    }
   }
 
-  void 'can save temperatures via the API'() {
+  void 'can save temperatures via the API with questions and answers'() {
     String orgAuthCode = 'auth1'
     Organization savedOrg = organizationRepository.save(
         new Organization(
@@ -108,44 +160,76 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
         )
     )
 
-    List<Temperature> temperatures = [
-        new Temperature(
+    AssessmentQuestionDTO savedQuestionA = assessmentQuestionService.create(
+        new AssessmentQuestionDTO(
+            displayValue: 'Wha?'
+        )
+    )
+    AssessmentQuestionDTO savedQuestionB = assessmentQuestionService.create(
+        new AssessmentQuestionDTO(
+            displayValue: 'Huh?'
+        )
+    )
+
+    List<TemperatureDTO> temperatureDTOs = [
+        new TemperatureDTO(
             temperature: 98.6,
             userId: 'test-user-a',
             latitude: 44.934940,
-            longitude: -93.158660
+            longitude: -93.158660,
+            questionAnswers: [
+              new AssessmentQuestionAnswerDTO(
+                  question: savedQuestionA,
+                  answer: true
+              ),
+              new AssessmentQuestionAnswerDTO(
+                  question: savedQuestionB,
+                  answer: true
+              )
+            ]
         ),
-        new Temperature(
+        new TemperatureDTO(
             temperature: 100.5,
             userId: 'test-user-b',
             latitude: 44.934941,
-            longitude: -93.158661
+            longitude: -93.158661,
+            questionAnswers: [
+                new AssessmentQuestionAnswerDTO(
+                    question: savedQuestionA,
+                    answer: true
+                ),
+                new AssessmentQuestionAnswerDTO(
+                    question: savedQuestionB,
+                    answer: true
+                )
+            ]
         )
     ]
 
     when:
-    ResponseEntity<List<Temperature>> response = client.saveTemperatures(orgAuthCode, temperatures)
+    ResponseEntity<List<TemperatureDTO>> response = client.saveTemperatures(orgAuthCode, temperatureDTOs)
 
     then:
     response.statusCode == HttpStatus.CREATED
     response.body.size() == 2
 
-    when: 'confirm they are in the db'
-    Page<Temperature> retrieved = temperatureRepository.findAllByOrganizationId(savedOrg.id, PageRequest.of(0, 100, ASC, 'id'))
+    when: 'confirm temperatures are in the db'
+    Page<TemperatureDTO> retrieved = temperaturesService.getTemperaturesFor(savedOrg.id, PageRequest.of(0, 100, ASC, 'id'))
 
     then:
     retrieved.content.size() == 2
     retrieved.content*.id.containsAll(response.body*.id)
-
-    cleanup:
-    organizationRepository.deleteById(savedOrg.id)
+    retrieved.content.every { temperature ->
+      temperature.questionAnswers.find { it.question.id == savedQuestionA.id } &&
+          temperature.questionAnswers.find { it.question.id == savedQuestionB.id }
+    }
   }
 
   @Unroll
   void 'save temperatures with unapproved org fails'() {
     given:
     String orgAuthCode = 'auth1'
-    Organization savedOrg = organizationRepository.save(
+    organizationRepository.save(
         new Organization(
             authorizationCode: orgAuthCode,
             taxId: '11111',
@@ -157,14 +241,14 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
         )
     )
 
-    List<Temperature> temperatures = [
-        new Temperature(
+    List<TemperatureDTO> temperatureDTOs = [
+        new TemperatureDTO(
             temperature: 98.6,
             userId: 'test-user-a',
             latitude: 44.934940,
             longitude: -93.158660
         ),
-        new Temperature(
+        new TemperatureDTO(
             temperature: 100.5,
             userId: 'test-user-b',
             latitude: 44.934941,
@@ -173,14 +257,11 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
     ]
 
     when:
-    client.saveTemperatures(orgAuthCode, temperatures)
+    client.saveTemperatures(orgAuthCode, temperatureDTOs)
 
     then:
     FeignException e = thrown(FeignException)
     e.status() == HttpStatus.FORBIDDEN.value()
-
-    cleanup:
-    organizationRepository.deleteById(savedOrg.id)
 
     where:
     approvalStatus << [APPLIED, REJECTED, SUSPENDED]
@@ -189,7 +270,7 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
   void 'save temperature with an org name  does not persist name'() {
     given:
     String orgAuthCode = 'auth1'
-    Organization savedOrg = organizationRepository.save(
+    organizationRepository.save(
         new Organization(
             authorizationCode: orgAuthCode,
             taxId: '11111',
@@ -200,7 +281,7 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
             sector: OTHER_PRIVATE_BUSINESS
         )
     )
-    Temperature temperature = new Temperature(
+    TemperatureDTO temperatureDTO = new TemperatureDTO(
         temperature: 100.5,
         userId: 'test-user-b',
         latitude: 44.934941,
@@ -209,21 +290,19 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
     )
 
     when:
-    ResponseEntity<Temperature> saved = client.saveTemperatures(orgAuthCode, [temperature])
+    ResponseEntity<List<TemperatureDTO>> saved = client.saveTemperatures(orgAuthCode, [temperatureDTO])
 
     then:
     saved.statusCode == HttpStatus.CREATED
-    saved.body.organizationName != temperature.organizationName
+    saved.body.size() == 1
+    saved.body.first().organizationName == 'testOrg'
 
     when:
-    ResponseEntity<Temperature> retrived = client.getTemperature(saved.body.id)
+    ResponseEntity<TemperatureDTO> retrieved = client.getTemperature(saved.body.id)
 
     then:
-    retrived.statusCode == HttpStatus.OK
-    retrived.body.organizationName == 'testOrg'
-
-    cleanup:
-    organizationRepository.deleteById(savedOrg.id)
+    retrieved.statusCode == HttpStatus.OK
+    retrieved.body.organizationName == 'testOrg'
   }
 
   void 'can get individual temperature by id'() {
@@ -257,23 +336,22 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
     List<Temperature> saved = temperatureRepository.saveAll(temperatures)
 
     when:
-    ResponseEntity<Temperature> gotFirstResponse = client.getTemperature(saved.first().id)
+    ResponseEntity<TemperatureDTO> gotFirstResponse = client.getTemperature(saved.first().id)
 
     then:
     gotFirstResponse.statusCode == HttpStatus.OK
     gotFirstResponse.body.id == saved.first().id
     gotFirstResponse.body.organizationName == 'testOrg'
+    gotFirstResponse.body.questionAnswers.isEmpty()
 
     when:
-    ResponseEntity<Temperature> gotSecondResponse = client.getTemperature(saved.last().id)
+    ResponseEntity<TemperatureDTO> gotSecondResponse = client.getTemperature(saved.last().id)
 
     then:
     gotSecondResponse.statusCode == HttpStatus.OK
     gotSecondResponse.body.id == saved.last().id
     gotSecondResponse.body.organizationName == 'testOrg'
-
-    cleanup:
-    organizationRepository.deleteById(savedOrg.id)
+    gotSecondResponse.body.questionAnswers.isEmpty()
   }
 
   void '404 on get by id is handled'() {
@@ -301,7 +379,7 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
             temperature: 100.5,
             userId: 'test-user-b',
             latitude: 44.934941,
-            longitude: -93.158661
+            longitude: 44.934941
         )
     ]
     List<Temperature> saved = temperatureRepository.saveAll(temperatures)

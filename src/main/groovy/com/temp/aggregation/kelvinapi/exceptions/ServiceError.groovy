@@ -9,6 +9,7 @@ enum ServiceError {
   INVALID_ORGANIZATION_STATE_CHANGE(HttpStatus.BAD_REQUEST, 'Invalid organization state change.'),
   NOT_FOUND(HttpStatus.NOT_FOUND, '%s not found'),
   ORGANIZATION_NOT_APPROVED(HttpStatus.FORBIDDEN, 'No approved organization found for provided auth code.'),
+  ASSESSMENT_QUESTION_CONFLICT(HttpStatus.CONFLICT, 'An AssessmentQuestion with the provided display_value exists already.'),
   UNEXPECTED_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 'Unexpected error has occurred. %s')
 
   final String errorDescription

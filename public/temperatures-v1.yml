@@ -409,6 +409,84 @@ paths:
               schema:
                 $ref: '#/components/schemas/enumeration'
         <<: *get-responses
+
+  /questions:
+    get:
+      tags:
+        - Questions
+      summary: Get questions.
+      description: Get the list of questions to provide along with a temperature assessment. Will accept multiple status params.
+      parameters:
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+            enum:
+              - ENABLED
+              - DISABLED
+          description: The status of the questions to get. Multiple status params are allowed. If none provided, assume all.
+
+      responses:
+        200:
+          description: Returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/assessment_question_list_response'
+        <<: *get-responses
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/assessment_question'
+      tags:
+        - Questions
+      summary: Create a new assessment question.
+      description: Adds a new, enabled assessment question.
+      responses:
+        201:
+          description: Created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/assessment_question'
+        <<: *post-responses
+
+  /questions/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        description: ID of the assessment question to retireve.
+    get:
+      tags:
+        - Questions
+      summary: Get an assessment question by ID.
+      description: Get a specific assessment question.
+      responses:
+        200:
+          description: Returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/enumeration'
+        <<: *get-responses
+
+    delete:
+      tags:
+        - Questions
+      summary: Disables an assessment question.
+      description: Disables an assessment question to prevent it being returned in the list response.
+      responses:
+        204:
+          description: Deleted successfully.
+        <<: *get-responses
+
 components:
   schemas:
 
@@ -536,6 +614,13 @@ components:
           type: string
           format: date-time
           description: Timestamp when this measurement was taken
+        question_answers_map:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            question_id_1: true
+            question_id_2: false
         <<: *audit-fields
 
     temperature_list:
@@ -617,6 +702,41 @@ components:
             $ref: '#/components/schemas/enumeration'
         total:
           description: Total matching enumeration objects
+          type: integer
+
+    assessment_question:
+      type: object
+      description: A question asked along with the temperature assessment.
+      properties:
+        id:
+          type: string
+          description: The ID of the assessment question
+          readOnly: true
+        display_value:
+          type: string
+          description: The text value of the question to display to the user.
+        status:
+          type: string
+          enum:
+            - ENABLED
+            - DISABLED
+          description: Only ENABLED assessment questions are returned in the list response to be presented to the user.
+        sortPriority:
+          type: integer
+          description: The list response returns questions sorted by sortPriority then display value.
+        <<: *audit-fields
+
+    assessment_question_list_response:
+      type: object
+      description: A list of assessment questions
+      properties:
+        results:
+          description: The assessment questions return.
+          type: array
+          items:
+            $ref: '#/components/schemas/assessment_question'
+        total:
+          description: Total count of assessment questions
           type: integer
 
   parameters:

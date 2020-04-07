@@ -2,8 +2,7 @@ package com.temp.aggregation.kelvinapi.controllers
 
 import com.temp.aggregation.kelvinapi.domain.ApprovalStatus
 import com.temp.aggregation.kelvinapi.domain.ListResponse
-import com.temp.aggregation.kelvinapi.domain.Organization
-import com.temp.aggregation.kelvinapi.domain.OrganizationUpdate
+import com.temp.aggregation.kelvinapi.domain.OrganizationDTO
 import com.temp.aggregation.kelvinapi.exceptions.ServiceError
 import com.temp.aggregation.kelvinapi.exceptions.ServiceException
 import com.temp.aggregation.kelvinapi.security.UserRoleService
@@ -36,36 +35,36 @@ class OrganizationsController {
 
   @PostMapping('/organizations')
   @ResponseStatus(HttpStatus.CREATED)
-  Organization createOrganization(@Valid @RequestBody OrganizationUpdate organizationUpdate) {
-    log.info("Request to create an organization with name ${organizationUpdate.orgName}")
-    return service.create(organizationUpdate)
+  OrganizationDTO createOrganization(@Valid @RequestBody OrganizationDTO organizationDTO) {
+    log.info("Request to create an organization with name ${organizationDTO.orgName}")
+    return service.create(organizationDTO)
   }
 
   @GetMapping('/organizations/{id}')
   @ResponseStatus(HttpStatus.OK)
-  Organization getOrganization(@PathVariable(value = 'id') String id,
-                               @RequestHeader(value = 'x-organization-pin', required = false) String organizationCode
+  OrganizationDTO getOrganization(@PathVariable(value = 'id') String id,
+                                  @RequestHeader(value = 'x-organization-pin', required = false) String organizationCode
   ) {
     log.info("Request to get an organization for id $id")
-    Organization organization = service.getOrganization(id)
-    if (!organizationCode || organization?.authorizationCode != organizationCode) {
+    OrganizationDTO organizationDTO = service.getOrganization(id)
+    if (!organizationCode || organizationDTO?.authorizationCode != organizationCode) {
       userRoleService.requireAdmin()
     }
-    return organization
+    return organizationDTO
   }
 
   @PutMapping('/organizations/{id}')
   @ResponseStatus(HttpStatus.OK)
-  Organization updateOrganization(@PathVariable String id, @RequestBody OrganizationUpdate organizationUpdate) {
-    log.info("Request to update an organization for id $id to status ${organizationUpdate.approvalStatus}")
+  OrganizationDTO updateOrganization(@PathVariable String id, @Valid @RequestBody OrganizationDTO organizationDTO) {
+    log.info("Request to update an organization for id $id to status ${organizationDTO.approvalStatus}")
     userRoleService.requireAdmin()
-    return service.save(id, organizationUpdate)
+    return service.save(id, organizationDTO)
   }
 
   @GetMapping('/organizations')
   @ResponseStatus(HttpStatus.OK)
   @SuppressWarnings('ParameterCount')
-  ListResponse<Organization> searchOrganizations(
+  ListResponse<OrganizationDTO> searchOrganizations(
       @RequestParam(name = 'tax_id', required = false) String taxId,
       @RequestParam(name = 'authorization_code', required = false) String authorizationCode,
       @RequestParam(name = 'name', required = false) String orgName,
@@ -77,14 +76,14 @@ class OrganizationsController {
 
     if (userRoleService.currentUserHasRole(ADMIN)) {
       String orgPin = authorizationCode ?: organizationPin
-      Page<Organization> page = service.find(orgPin, taxId, orgName, approvalStatus, pageable)
-      return new ListResponse<Organization>(results: page.content, total: page.totalElements)
+      Page<OrganizationDTO> page = service.find(orgPin, taxId, orgName, approvalStatus, pageable)
+      return new ListResponse<OrganizationDTO>(results: page.content, total: page.totalElements)
     } else if (!organizationPin) {
       throw new ServiceException(ServiceError.UNAUTHORIZED)
     }
 
     // filter by auth code in header
-    Page<Organization> page = service.find(organizationPin, taxId, orgName, approvalStatus, pageable)
-    return new ListResponse<Organization>(results: page.content, total: page.totalElements)
+    Page<OrganizationDTO> page = service.find(organizationPin, taxId, orgName, approvalStatus, pageable)
+    return new ListResponse<OrganizationDTO>(results: page.content, total: page.totalElements)
   }
 }

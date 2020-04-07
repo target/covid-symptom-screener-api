@@ -48,7 +48,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void 'create organization'() {
     setup:
-    OrganizationUpdate update = new OrganizationUpdate(
+    OrganizationDTO update = new OrganizationDTO(
         taxId: '123',
         contactName: 'Ops Guy',
         contactEmail: 'opsGuy@target.com',
@@ -59,7 +59,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
     )
 
     when:
-    ResponseEntity<Organization> response = client.createOrganization(update)
+    ResponseEntity<OrganizationDTO> response = client.createOrganization(update)
 
     then:
     response.statusCode == HttpStatus.CREATED
@@ -84,7 +84,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
     )
 
     when:
-    ResponseEntity<Organization> response = client.getOrganization(organization.id, 'abc')
+    ResponseEntity<OrganizationDTO> response = client.getOrganization(organization.id, 'abc')
 
     then:
     response.statusCode == HttpStatus.OK
@@ -127,7 +127,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
         approvalStatus: ApprovalStatus.APPLIED,
         sector: OTHER_PRIVATE_BUSINESS)
     )
-    OrganizationUpdate update = new OrganizationUpdate(
+    OrganizationDTO update = new OrganizationDTO(
         taxId: '123',
         contactName: 'Ops Guy',
         contactEmail: 'opsGuy@target.com',
@@ -138,7 +138,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
     )
 
     when:
-    ResponseEntity<Organization> response = client.updateOrganization(organization.id, update)
+    ResponseEntity<OrganizationDTO> response = client.updateOrganization(organization.id, update)
 
     then:
     response.statusCode == HttpStatus.OK
@@ -167,7 +167,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
         approvalStatus: initialStatus,
         sector: OTHER_PRIVATE_BUSINESS)
     )
-    OrganizationUpdate update = new OrganizationUpdate(
+    OrganizationDTO update = new OrganizationDTO(
         taxId: '123',
         contactName: 'Joe',
         contactEmail: 'joe@target.com',
@@ -207,11 +207,13 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
     when:
     client.updateOrganization(
         'some-org',
-        new OrganizationUpdate(
+        new OrganizationDTO(
             taxId: 'tax-id',
             orgName: 'org-name',
             approvalStatus: APPROVED,
-            sector: OTHER_PRIVATE_BUSINESS
+            sector: OTHER_PRIVATE_BUSINESS,
+            contactName: 'Test Contact',
+            contactEmail: 'test-contact@email.com'
         )
     )
 
@@ -276,13 +278,13 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
     ])
 
     when:
-    ResponseEntity<ListResponse<Organization>> response =
+    ResponseEntity<ListResponse<OrganizationDTO>> response =
         client.searchOrganizations(taxId, authorizationCode, orgName, status, orgPin, pageable)
 
     then:
     response.statusCode == HttpStatus.OK
     response.body.total == expectedIds.size()
-    response.body.results*.taxId == expectedIds
+    response.body.results*.taxId.containsAll(expectedIds)
 
     where:
     authorizationCode | orgPin | taxId | orgName  | status   | expectedIds
@@ -323,7 +325,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
     ])
 
     when:
-    ResponseEntity<ListResponse<Organization>> response = client.searchOrganizations(null, null, null, APPROVED, 'orgAuthCode', PageRequest.of(0, 10))
+    ResponseEntity<ListResponse<OrganizationDTO>> response = client.searchOrganizations(null, null, null, APPROVED, 'orgAuthCode', PageRequest.of(0, 10))
 
     then:
     response.statusCode == HttpStatus.OK

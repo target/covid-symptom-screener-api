@@ -2,25 +2,19 @@ package com.temp.aggregation.kelvinapi.services
 
 import com.temp.aggregation.kelvinapi.domain.ApprovalStatus
 import com.temp.aggregation.kelvinapi.domain.Organization
-import com.temp.aggregation.kelvinapi.domain.OrganizationUpdate
+import com.temp.aggregation.kelvinapi.domain.OrganizationDTO
 import com.temp.aggregation.kelvinapi.exceptions.ServiceError
 import com.temp.aggregation.kelvinapi.exceptions.ServiceException
 import com.temp.aggregation.kelvinapi.repositories.OrganizationRepository
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.domain.Example
-import org.springframework.data.domain.ExampleMatcher
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.*
 import org.springframework.stereotype.Service
 
 import java.nio.ByteBuffer
 import java.security.SecureRandom
 
-import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.APPLIED
-import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.APPROVED
-import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.REJECTED
-import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.SUSPENDED
+import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.*
 import static org.springframework.data.domain.ExampleMatcher.GenericPropertyMatchers.contains
 
 @Service
@@ -32,36 +26,48 @@ class OrganizationsService {
   private static final Random RANDOM_NUM =
       new SecureRandom(ByteBuffer.allocate(8).putLong(System.currentTimeMillis()).array())
 
-  Organization create(OrganizationUpdate organizationUpdate) {
-    if (repository.findByTaxId(organizationUpdate.taxId)) {
-      throw new ServiceException(ServiceError.ORGANIZATION_CONFLICT, organizationUpdate.taxId)
+  OrganizationDTO create(OrganizationDTO organizationDTO) {
+    if (repository.findByTaxId(organizationDTO.taxId)) {
+      throw new ServiceException(ServiceError.ORGANIZATION_CONFLICT, organizationDTO.taxId)
     }
     Organization organization = new Organization()
-    InvokerHelper.setProperties(organization, organizationUpdate.properties)
+    InvokerHelper.setProperties(organization, organizationDTO.properties)
     organization.approvalStatus = APPLIED
-    return repository.save(organization)
+    Organization saved = repository.save(organization)
+    OrganizationDTO dto = new OrganizationDTO()
+    InvokerHelper.setProperties(dto, saved.properties)
+    return dto
   }
 
-  Organization getOrganization(String id) {
-    return repository.findById(id).orElseThrow {
+  OrganizationDTO getOrganization(String id) {
+    Organization organization = repository.findById(id).orElseThrow {
       new ServiceException(ServiceError.NOT_FOUND, 'Organization')
     }
+    OrganizationDTO dto = new OrganizationDTO()
+    InvokerHelper.setProperties(dto, organization.properties)
+    return dto
   }
 
-  Organization save(String id, OrganizationUpdate organizationUpdate) {
-    Organization organization = getOrganization(id)
-    if (organization) {
-      validateStateChange(organization, organizationUpdate)
+  OrganizationDTO save(String id, OrganizationDTO organizationDTO) {
+    Organization organization = repository.findById(id).orElseThrow {
+      new ServiceException(ServiceError.NOT_FOUND, 'Organization')
     }
-    if (!organization.authorizationCode && organizationUpdate.approvalStatus == APPROVED) {
+
+    validateStateChange(organization, organizationDTO)
+
+    if (!organization.authorizationCode && organizationDTO.approvalStatus == APPROVED) {
       organization.authorizationCode = generateAuthorizationCode()
     }
 
-    InvokerHelper.setProperties(organization, organizationUpdate.properties)
-    return repository.save(organization)
+    copyUpdateablePropertiesToExisting(organization, organizationDTO)
+
+    Organization saved = repository.save(organization)
+    OrganizationDTO dto = new OrganizationDTO()
+    InvokerHelper.setProperties(dto, saved.properties)
+    return dto
   }
 
-  Page<Organization> find(String authorizationCode, String taxId, String name, ApprovalStatus status, Pageable pageable) {
+  Page<OrganizationDTO> find(String authorizationCode, String taxId, String name, ApprovalStatus status, Pageable pageable) {
     ExampleMatcher matcher = ExampleMatcher
         .matchingAll()
         .withMatcher('orgName', contains().ignoreCase())
@@ -70,15 +76,23 @@ class OrganizationsService {
         taxId: taxId,
         orgName: name,
         approvalStatus: status)
-    return repository.findAll(Example.of(example, matcher), pageable)
+    Page<Organization> found = repository.findAll(Example.of(example, matcher), pageable)
+    List<OrganizationDTO> organizationDTOS = found.content.collect { organization ->
+      OrganizationDTO dto = new OrganizationDTO()
+      InvokerHelper.setProperties(dto, organization.properties)
+      return dto
+    }
+    return new PageImpl<>(organizationDTOS, found.pageable, found.totalElements)
   }
 
-  Organization getApprovedOrganizationByAuthCode(String authorizationCode) {
+  OrganizationDTO getApprovedOrganizationByAuthCode(String authorizationCode) {
     Organization org = repository.findByApprovalStatusAndAuthorizationCode(APPROVED, authorizationCode)
     if (!org) {
       throw new ServiceException(ServiceError.ORGANIZATION_NOT_APPROVED)
     }
-    return org
+    OrganizationDTO dto = new OrganizationDTO()
+    InvokerHelper.setProperties(dto, org.properties)
+    return dto
   }
 
   private String generateAuthorizationCode() {
@@ -99,20 +113,20 @@ class OrganizationsService {
     return base36.padLeft(5, '0').take(5)
   }
 
-  private void validateStateChange(Organization current, OrganizationUpdate updated) {
-    boolean valid = true
+  private void validateStateChange(Organization current, OrganizationDTO dto) {
+    boolean valid
     switch (current.approvalStatus) {
       case APPLIED:
-        valid = [APPLIED, APPROVED, REJECTED].contains(updated.approvalStatus)
+        valid = [APPLIED, APPROVED, REJECTED].contains(dto.approvalStatus)
         break
       case APPROVED:
-        valid = [APPROVED, SUSPENDED].contains(updated.approvalStatus)
+        valid = [APPROVED, SUSPENDED].contains(dto.approvalStatus)
         break
       case REJECTED:
-        valid = [REJECTED, APPLIED].contains(updated.approvalStatus)
+        valid = [REJECTED, APPLIED].contains(dto.approvalStatus)
         break
       case SUSPENDED:
-        valid = [SUSPENDED, APPROVED].contains(updated.approvalStatus)
+        valid = [SUSPENDED, APPROVED].contains(dto.approvalStatus)
         break
       default:
         // we have bad data; shouldn't happen
@@ -122,5 +136,16 @@ class OrganizationsService {
     if (!valid) {
       throw new ServiceException(ServiceError.INVALID_ORGANIZATION_STATE_CHANGE)
     }
+  }
+
+  private void copyUpdateablePropertiesToExisting(Organization existing, OrganizationDTO dto) {
+    existing.approvalStatus = dto.approvalStatus
+    existing.contactEmail = dto.contactEmail
+    existing.contactJobTitle = dto.contactJobTitle
+    existing.contactName = dto.contactName
+    existing.contactPhone = dto.contactPhone
+    existing.sector = dto.sector
+    existing.taxId = dto.taxId
+    existing.orgName = dto.orgName
   }
 }

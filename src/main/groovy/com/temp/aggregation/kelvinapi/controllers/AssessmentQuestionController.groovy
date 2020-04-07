@@ -1,0 +1,68 @@
+package com.temp.aggregation.kelvinapi.controllers
+
+import com.temp.aggregation.kelvinapi.domain.AssessmentQuestionDTO
+import com.temp.aggregation.kelvinapi.domain.AssessmentQuestionStatus
+import com.temp.aggregation.kelvinapi.security.UserRoleService
+import com.temp.aggregation.kelvinapi.services.AssessmentQuestionService
+import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.WebDataBinder
+import org.springframework.web.bind.annotation.*
+
+import javax.validation.Valid
+
+@RestController
+@Slf4j
+class AssessmentQuestionController {
+  @Autowired
+  AssessmentQuestionService assessmentQuestionService
+
+  @Autowired
+  UserRoleService userRoleService
+
+  @InitBinder
+  void initBinder(WebDataBinder dataBinder) {
+    dataBinder.registerCustomEditor(AssessmentQuestionStatus, new CaseInsensitiveEnumConverter(AssessmentQuestionStatus))
+  }
+
+  @PostMapping('/questions')
+  @ResponseStatus(HttpStatus.CREATED)
+  AssessmentQuestionDTO createQuestion(@Valid @RequestBody AssessmentQuestionDTO assessmentQuestionDTO) {
+    log.info("Request to create AssessmentQuestion: ${assessmentQuestionDTO.displayValue}")
+    userRoleService.requireAdmin()
+    return assessmentQuestionService.create(assessmentQuestionDTO)
+  }
+
+  @PutMapping('/questions/{id}')
+  @ResponseStatus(HttpStatus.OK)
+  AssessmentQuestionDTO updateQuestion(@PathVariable String id, @Valid @RequestBody AssessmentQuestionDTO assessmentQuestionDTO) {
+    log.info("Request to update AssessmentQuestion: $id")
+    userRoleService.requireAdmin()
+    return assessmentQuestionService.save(id, assessmentQuestionDTO)
+  }
+
+  @GetMapping('/questions')
+  @ResponseStatus(HttpStatus.OK)
+  List<AssessmentQuestionDTO> getQuestions(@RequestParam(name = 'status', required = false) List<AssessmentQuestionStatus> statuses) {
+    log.info('Request to get all enabled AssessmentQuestions')
+    List<AssessmentQuestionStatus> useStatuses = statuses ?: AssessmentQuestionStatus.values().toList()
+    List<AssessmentQuestionDTO> assessmentQuestions = assessmentQuestionService.findByStatuses(useStatuses)
+    return assessmentQuestions
+  }
+
+  @GetMapping('/questions/{id}')
+  @ResponseStatus(HttpStatus.OK)
+  AssessmentQuestionDTO getById(@PathVariable(value = 'id') String id) {
+    log.info("Request for AssessmentQuestion by id $id")
+    return assessmentQuestionService.findById(id)
+  }
+
+  @DeleteMapping('/questions/{id}')
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  void disableQuestion(@PathVariable(value = 'id') String id) {
+    log.info("Request to disable question $id.")
+    userRoleService.requireAdmin()
+    assessmentQuestionService.disable(id)
+  }
+}

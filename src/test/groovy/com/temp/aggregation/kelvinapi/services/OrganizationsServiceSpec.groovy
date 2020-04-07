@@ -2,7 +2,7 @@ package com.temp.aggregation.kelvinapi.services
 
 import com.temp.aggregation.kelvinapi.domain.ApprovalStatus
 import com.temp.aggregation.kelvinapi.domain.Organization
-import com.temp.aggregation.kelvinapi.domain.OrganizationUpdate
+import com.temp.aggregation.kelvinapi.domain.OrganizationDTO
 import com.temp.aggregation.kelvinapi.exceptions.ServiceError
 import com.temp.aggregation.kelvinapi.exceptions.ServiceException
 import com.temp.aggregation.kelvinapi.repositories.OrganizationRepository
@@ -13,6 +13,10 @@ import org.springframework.data.domain.PageRequest
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.APPLIED
+import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.APPROVED
+import static com.temp.aggregation.kelvinapi.domain.OrganizationSector.OTHER_PRIVATE_BUSINESS
+
 class OrganizationsServiceSpec extends Specification {
 
   OrganizationsService service = new OrganizationsService(
@@ -21,19 +25,29 @@ class OrganizationsServiceSpec extends Specification {
 
   void 'create'() {
     setup:
-    OrganizationUpdate update = new OrganizationUpdate(
+    OrganizationDTO update = new OrganizationDTO(
         taxId: '123',
         contactName: 'Ops Guy',
         contactEmail: 'opsGuy@target.com',
         contactPhone: '555-555-5555',
         contactJobTitle: 'very important person',
         orgName: 'Target',
+        sector: OTHER_PRIVATE_BUSINESS
     )
 
-    Organization expected = new Organization(id: 'o1')
+    Organization saved = new Organization(
+        id: 'o1',
+        taxId: '123',
+        contactName: 'Ops Guy',
+        contactEmail: 'opsGuy@target.com',
+        contactPhone: '555-555-5555',
+        contactJobTitle: 'very important person',
+        orgName: 'Target',
+        sector: OTHER_PRIVATE_BUSINESS
+    )
 
     when:
-    Organization organization = service.create(update)
+    OrganizationDTO organizationDTO = service.create(update)
 
     then:
     1 * service.repository.findByTaxId(update.taxId) >> null
@@ -44,17 +58,24 @@ class OrganizationsServiceSpec extends Specification {
       assert it.contactPhone == update.contactPhone
       assert it.contactJobTitle == update.contactJobTitle
       assert it.orgName == update.orgName
-      assert it.approvalStatus == ApprovalStatus.APPLIED
+      assert it.approvalStatus == APPLIED
       return true
-    }) >> expected
+    }) >> saved
     0 * _
 
-    organization == expected
+    organizationDTO.id == saved.id
+    organizationDTO.taxId == saved.taxId
+    organizationDTO.contactName == saved.contactName
+    organizationDTO.contactPhone == saved.contactPhone
+    organizationDTO.contactJobTitle == saved.contactJobTitle
+    organizationDTO.orgName == saved.orgName
+    organizationDTO.approvalStatus == APPLIED
+    organizationDTO.sector == saved.sector
   }
 
   void 'create does not allow duplicate tax id'() {
     setup:
-    OrganizationUpdate update = new OrganizationUpdate(
+    OrganizationDTO update = new OrganizationDTO(
         taxId: '123',
         contactName: 'Ops Guy',
         contactEmail: 'opsGuy@target.com',
@@ -75,41 +96,62 @@ class OrganizationsServiceSpec extends Specification {
 
   void 'save sets an auth code when status is approved'() {
     setup:
-    OrganizationUpdate update = new OrganizationUpdate(
+    OrganizationDTO dto = new OrganizationDTO(
         taxId: '123',
+        contactName: 'Ops Guy',
+        contactEmail: 'opsGuy@target.com',
+        contactPhone: '555-555-5555',
+        contactJobTitle: 'very important person',
         orgName: 'Target',
-        approvalStatus: ApprovalStatus.APPROVED
+        sector: OTHER_PRIVATE_BUSINESS,
+        approvalStatus: APPROVED
+    )
+    Organization existing = new Organization(
+        id: 'o1',
+        taxId: '123',
+        contactName: 'Ops Guy',
+        contactEmail: 'opsGuy@target.com',
+        contactPhone: '555-555-5555',
+        contactJobTitle: 'very important person',
+        orgName: 'Target',
+        sector: OTHER_PRIVATE_BUSINESS,
+        approvalStatus: APPROVED
     )
 
-    Organization expected = new Organization(id: 'o1')
-
     when:
-    Organization organization = service.save('o1', update)
+    OrganizationDTO organizationDTO = service.save('o1', dto)
 
     then:
-    1 * service.repository.findById('o1') >> Optional.of(expected)
+    1 * service.repository.findById('o1') >> Optional.of(existing)
     1 * service.repository.existsByAuthorizationCode(_ as String) >> true
     1 * service.repository.existsByAuthorizationCode(_ as String) >> false
     1 * service.repository.save({
-      assert it.taxId == update.taxId
-      assert it.orgName == update.orgName
+      assert it.taxId == dto.taxId
+      assert it.orgName == dto.orgName
       assert it.approvalStatus == ApprovalStatus.APPROVED
       assert it.authorizationCode
       return true
-    }) >> expected
+    }) >> existing
     0 * _
 
-    organization == expected
+    organizationDTO.id == existing.id
+    organizationDTO.taxId == existing.taxId
+    organizationDTO.contactName == existing.contactName
+    organizationDTO.contactPhone == existing.contactPhone
+    organizationDTO.contactJobTitle == existing.contactJobTitle
+    organizationDTO.orgName == existing.orgName
+    organizationDTO.approvalStatus == APPROVED
+    organizationDTO.sector == existing.sector
   }
 
   void 'save throws exception if organization is not found'() {
     setup:
-    OrganizationUpdate update = new OrganizationUpdate(
+    OrganizationDTO dto = new OrganizationDTO(
         taxId: '123',
         orgName: 'Target'
     )
     when:
-    service.save('o1', update)
+    service.save('o1', dto)
 
     then:
     1 * service.repository.findById('o1') >> Optional.empty()
@@ -121,19 +163,19 @@ class OrganizationsServiceSpec extends Specification {
 
   void 'save fails when unique auth code is not generated on approve update'() {
     setup:
-    OrganizationUpdate update = new OrganizationUpdate(
+    OrganizationDTO dto = new OrganizationDTO(
         taxId: '123',
         orgName: 'Target',
         approvalStatus: ApprovalStatus.APPROVED
     )
 
-    Organization expected = new Organization(id: 'o1')
+    Organization existing = new Organization(id: 'o1')
 
     when:
-    service.save('o1', update)
+    service.save('o1', dto)
 
     then:
-    1 * service.repository.findById('o1') >> Optional.of(expected)
+    1 * service.repository.findById('o1') >> Optional.of(existing)
     11 * service.repository.existsByAuthorizationCode(_ as String) >> true
     0 * _
 
@@ -143,7 +185,7 @@ class OrganizationsServiceSpec extends Specification {
 
   void 'get organization'() {
     when:
-    Organization organization = service.getOrganization('o1')
+    OrganizationDTO organization = service.getOrganization('o1')
 
     then:
     1 * service.repository.findById('o1') >> Optional.of(new Organization(id: 'o1'))
@@ -156,10 +198,10 @@ class OrganizationsServiceSpec extends Specification {
   void 'find by criteria'() {
     setup:
     PageRequest pageRequest = PageRequest.of(0, 20)
-    Page<Organization> expected = new PageImpl<>([])
+    Page<OrganizationDTO> expected = new PageImpl<>([])
 
     when:
-    Page<Organization> results = service.find(authorizationCode, taxId, orgName, status, pageRequest)
+    Page<OrganizationDTO> results = service.find(authorizationCode, taxId, orgName, status, pageRequest)
 
     then:
     1 * service.repository.findAll({ Example example ->
@@ -184,8 +226,8 @@ class OrganizationsServiceSpec extends Specification {
     'abcd'            | '123' | null     | null
     null              | '123' | null     | null
     null              | '123' | 'Target' | null
-    null              | '123' | null     | ApprovalStatus.APPLIED
-    null              | '123' | 'Target' | ApprovalStatus.APPLIED
+    null              | '123' | null     | APPLIED
+    null              | '123' | 'Target' | APPLIED
   }
 
   void 'generate auth code'() {
