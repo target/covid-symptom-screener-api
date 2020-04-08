@@ -75,7 +75,7 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
             contactPhone: '111-111-1111'
         )
     )
-    List<TemperatureDTO> temperatures = [
+    List<TemperatureDTO> temperatureDTOs = [
         new TemperatureDTO(
             organizationId: savedOrg.id,
             temperature: 98.6,
@@ -98,7 +98,7 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
             longitude: -93.158661
         )
     ]
-    List<TemperatureDTO> savedTemperatures = temperatureRepository.saveAll(temperatures)
+    List<TemperatureDTO> savedTemperatureDTOs = temperatureRepository.saveAll(temperatureDTOs)
     AssessmentQuestionDTO savedQuestionA = assessmentQuestionRepository.save(
         new AssessmentQuestionDTO(
             displayValue: 'Wha?'
@@ -110,7 +110,7 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
         )
     )
 
-    assessmentQuestionAnswerRepository.saveAll(savedTemperatures.collectMany { temperature ->
+    assessmentQuestionAnswerRepository.saveAll(savedTemperatureDTOs.collectMany { temperature ->
       return [
           new AssessmentQuestionAnswerDTO(
               temperature: temperature,
@@ -171,7 +171,7 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
         )
     )
 
-    List<Temperature> temperatureDTOs = [
+    List<Temperature> temperatures = [
         new Temperature(
             temperature: 98.6,
             userId: 'test-user-a',
@@ -207,7 +207,7 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
     ]
 
     when:
-    ResponseEntity<List<Temperature>> response = client.saveTemperatures(orgAuthCode, temperatureDTOs)
+    ResponseEntity<List<Temperature>> response = client.saveTemperatures(orgAuthCode, temperatures)
 
     then:
     response.statusCode == HttpStatus.CREATED
@@ -241,7 +241,7 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
         )
     )
 
-    List<Temperature> temperatureDTOs = [
+    List<Temperature> temperatures = [
         new Temperature(
             temperature: 98.6,
             userId: 'test-user-a',
@@ -257,7 +257,7 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
     ]
 
     when:
-    client.saveTemperatures(orgAuthCode, temperatureDTOs)
+    client.saveTemperatures(orgAuthCode, temperatures)
 
     then:
     FeignException e = thrown(FeignException)
@@ -281,7 +281,7 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
             sector: OTHER_PRIVATE_BUSINESS
         )
     )
-    Temperature temperatureDTO = new Temperature(
+    Temperature temperature = new Temperature(
         temperature: 100.5,
         userId: 'test-user-b',
         latitude: 44.934941,
@@ -290,7 +290,7 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
     )
 
     when:
-    ResponseEntity<List<Temperature>> saved = client.saveTemperatures(orgAuthCode, [temperatureDTO])
+    ResponseEntity<List<Temperature>> saved = client.saveTemperatures(orgAuthCode, [temperature])
 
     then:
     saved.statusCode == HttpStatus.CREATED
@@ -317,7 +317,7 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
             sector: OTHER_PRIVATE_BUSINESS
         )
     )
-    List<TemperatureDTO> temperatures = [
+    List<TemperatureDTO> temperatureDTOs = [
         new TemperatureDTO(
             organizationId: savedOrg.id,
             temperature: 98.6,
@@ -333,7 +333,7 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
             longitude: -93.158661
         )
     ]
-    List<TemperatureDTO> saved = temperatureRepository.saveAll(temperatures)
+    List<TemperatureDTO> saved = temperatureRepository.saveAll(temperatureDTOs)
 
     when:
     ResponseEntity<Temperature> gotFirstResponse = client.getTemperature(saved.first().id)
@@ -366,7 +366,7 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
   void 'can delete individual temperature by id'() {
     given:
     String organizationId = 'testOrgD'
-    List<TemperatureDTO> temperatures = [
+    List<TemperatureDTO> temperatureDTOs = [
         new TemperatureDTO(
             organizationId: organizationId,
             temperature: 98.6,
@@ -382,7 +382,7 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
             longitude: 44.934941
         )
     ]
-    List<TemperatureDTO> saved = temperatureRepository.saveAll(temperatures)
+    List<TemperatureDTO> saved = temperatureRepository.saveAll(temperatureDTOs)
 
     when:
     ResponseEntity<Void> deletedFirst = client.deleteTemperature(saved.first().id)

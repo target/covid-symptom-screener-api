@@ -43,37 +43,37 @@ class TemperaturesService {
     } else {
       page = temperatureRepository.findAll(pageable)
     }
-    List<Temperature> dtos = page.content.collect { temperature ->
-      Temperature dto = buildDTOFrom(temperature)
-      return dto
+    List<Temperature> temperatures = page.content.collect { temperatureDTO ->
+      Temperature temperature = buildTemperatureFrom(temperatureDTO)
+      return temperature
     }
-    return new PageImpl<Temperature>(dtos, page.pageable, page.totalElements)
+    return new PageImpl<Temperature>(temperatures, page.pageable, page.totalElements)
   }
 
   @Transactional
-  List<Temperature> saveAll(List<Temperature> temperatureDTOs, String organizationAuthCode) {
-    Organization organizationDTO = organizationService.getApprovedOrganizationByAuthCode(organizationAuthCode)
-    if (!organizationDTO) {
+  List<Temperature> saveAll(List<Temperature> toSave, String organizationAuthCode) {
+    Organization organization = organizationService.getApprovedOrganizationByAuthCode(organizationAuthCode)
+    if (!organization) {
       throw new ServiceException(ServiceError.ORGANIZATION_NOT_APPROVED)
     }
-    List<TemperatureDTO> temperatures = temperatureDTOs.collect { temperatureDTO ->
-      TemperatureDTO temperature = new TemperatureDTO()
-      InvokerHelper.setProperties(temperature, temperatureDTO.properties)
-      temperature.organizationId = organizationDTO.id
-      populateQuestionAnswersFromDTO(temperatureDTO, temperature)
-      return temperature
+    List<TemperatureDTO> temperatureDTOs = toSave.collect { temperature ->
+      TemperatureDTO temperatureDTO = new TemperatureDTO()
+      InvokerHelper.setProperties(temperatureDTO, temperatureDTO.properties)
+      temperatureDTO.organizationId = organization.id
+      populateDTOQuestionAnswersFromTemperature(temperature, temperatureDTO)
+      return temperatureDTO
     }
     List<TemperatureDTO> saved = temperatureRepository.saveAll(
-        temperatures
+        temperatureDTOs
     )
-    return saved.collect { buildDTOFrom(it) }
+    return saved.collect { buildTemperatureFrom(it) }
   }
 
   @Transactional
   Temperature findById(String temperatureId) {
-    TemperatureDTO temperature = temperatureRepository.findById(temperatureId)
+    TemperatureDTO temperatureDTO = temperatureRepository.findById(temperatureId)
         .orElseThrow { new ServiceException(ServiceError.NOT_FOUND) }
-    return buildDTOFrom(temperature)
+    return buildTemperatureFrom(temperatureDTO)
   }
 
   @Transactional
@@ -81,44 +81,44 @@ class TemperaturesService {
     temperatureRepository.deleteById(temperatureId)
   }
 
-  private TemperatureDTO populateQuestionAnswersFromDTO(Temperature temperatureDTO, TemperatureDTO temperature) {
-    List<AssessmentQuestionAnswerDTO> answers = temperatureDTO.questionAnswers.collect { questionAnswer ->
-      AssessmentQuestion questionDTO = questionService.findById(questionAnswer.question.id)
-      AssessmentQuestionDTO question = new AssessmentQuestionDTO()
-      InvokerHelper.setProperties(question, questionDTO.properties)
+  private TemperatureDTO populateDTOQuestionAnswersFromTemperature(Temperature temperature, TemperatureDTO temperatureDTO) {
+    List<AssessmentQuestionAnswerDTO> answers = temperature.questionAnswers.collect { questionAnswer ->
+      AssessmentQuestion question = questionService.findById(questionAnswer.question.id)
+      AssessmentQuestionDTO questionDTO = new AssessmentQuestionDTO()
+      InvokerHelper.setProperties(questionDTO, question.properties)
       return new AssessmentQuestionAnswerDTO(
-          temperature: temperature,
-          question: question,
+          temperature: temperatureDTO,
+          question: questionDTO,
           answer: questionAnswer.answer
       )
     }
-    temperature.questionAnswers = answers.toSet()
-    return temperature
+    temperatureDTO.questionAnswers = answers.toSet()
+    return temperatureDTO
   }
 
-  private Temperature buildDTOFrom(TemperatureDTO temperature) {
-    Organization organizationDTO = organizationService.getOrganization(temperature.organizationId)
-    if (!organizationDTO || organizationDTO.approvalStatus != APPROVED) {
+  private Temperature buildTemperatureFrom(TemperatureDTO temperatureDTO) {
+    Organization organization = organizationService.getOrganization(temperatureDTO.organizationId)
+    if (!organization || organization.approvalStatus != APPROVED) {
       throw new ServiceException(ServiceError.ORGANIZATION_NOT_APPROVED)
     }
     return new Temperature(
-        id: temperature.id,
-        organizationId: temperature.organizationId,
-        organizationName: organizationDTO.orgName,
-        temperature: temperature.temperature,
-        userId: temperature.userId,
-        latitude: temperature.latitude,
-        longitude: temperature.longitude,
-        timestamp: temperature.timestamp,
-        created: temperature.created,
-        createdBy: temperature.createdBy,
-        lastModified: temperature.lastModified,
-        lastModifiedBy: temperature.lastModifiedBy,
-        questionAnswers: temperature.questionAnswers.collect { questionAnswer ->
-          AssessmentQuestion questionDTO = new AssessmentQuestion()
-          InvokerHelper.setProperties(questionDTO, questionAnswer.question.properties)
+        id: temperatureDTO.id,
+        organizationId: temperatureDTO.organizationId,
+        organizationName: organization.orgName,
+        temperature: temperatureDTO.temperature,
+        userId: temperatureDTO.userId,
+        latitude: temperatureDTO.latitude,
+        longitude: temperatureDTO.longitude,
+        timestamp: temperatureDTO.timestamp,
+        created: temperatureDTO.created,
+        createdBy: temperatureDTO.createdBy,
+        lastModified: temperatureDTO.lastModified,
+        lastModifiedBy: temperatureDTO.lastModifiedBy,
+        questionAnswers: temperatureDTO.questionAnswers.collect { questionAnswer ->
+          AssessmentQuestion question = new AssessmentQuestion()
+          InvokerHelper.setProperties(question, questionAnswer.question.properties)
           new AssessmentQuestionAnswer(
-              question: questionDTO,
+              question: question,
               answer: questionAnswer.answer
           )
         }.toSet()

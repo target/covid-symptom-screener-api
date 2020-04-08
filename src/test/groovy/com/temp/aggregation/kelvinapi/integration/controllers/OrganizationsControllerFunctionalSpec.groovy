@@ -73,7 +73,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void 'get organization'() {
     setup:
-    OrganizationDTO organization = repository.save(new OrganizationDTO(
+    OrganizationDTO organizationDTO = repository.save(new OrganizationDTO(
         orgName: 'Target',
         authorizationCode: 'abc',
         taxId: '1',
@@ -84,16 +84,16 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
     )
 
     when:
-    ResponseEntity<Organization> response = client.getOrganization(organization.id, 'abc')
+    ResponseEntity<Organization> response = client.getOrganization(organizationDTO.id, 'abc')
 
     then:
     response.statusCode == HttpStatus.OK
-    response.body.id == organization.id
+    response.body.id == organizationDTO.id
   }
 
   void 'get organization with mismatched org auth code fails for non admin'() {
     setup:
-    OrganizationDTO organization = repository.save(new OrganizationDTO(
+    OrganizationDTO organizationDTO = repository.save(new OrganizationDTO(
         orgName: 'Target',
         authorizationCode: 'abc',
         taxId: '1',
@@ -106,7 +106,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
     userRoleRepository.deleteById('test-adminA@email.com')
 
     when:
-    client.getOrganization(organization.id, 'def')
+    client.getOrganization(organizationDTO.id, 'def')
 
     then:
     FeignException e = thrown(FeignException)
@@ -118,7 +118,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
 
   void 'update organization succeeds'() {
     setup:
-    OrganizationDTO organization = repository.save(new OrganizationDTO(
+    OrganizationDTO organizationDTO = repository.save(new OrganizationDTO(
         orgName: 'Target',
         authorizationCode: 'abc',
         taxId: '1',
@@ -138,11 +138,11 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
     )
 
     when:
-    ResponseEntity<Organization> response = client.updateOrganization(organization.id, update)
+    ResponseEntity<Organization> response = client.updateOrganization(organizationDTO.id, update)
 
     then:
     response.statusCode == HttpStatus.OK
-    response.body.id == organization.id
+    response.body.id == organizationDTO.id
     response.body.taxId == update.taxId
     response.body.contactName == update.contactName
     response.body.contactEmail == update.contactEmail
@@ -157,7 +157,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
   @Unroll
   void 'organization update with invalid state change throws exception'() {
     given:
-    OrganizationDTO organization = repository.save(new OrganizationDTO(
+    OrganizationDTO organizationDTO = repository.save(new OrganizationDTO(
         orgName: 'Target',
         authorizationCode: 'abc',
         taxId: '123',
@@ -179,14 +179,14 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
     )
 
     when:
-    client.updateOrganization(organization.id, update)
+    client.updateOrganization(organizationDTO.id, update)
 
     then:
     FeignException e = thrown(FeignException)
     e.status() == ServiceError.INVALID_ORGANIZATION_STATE_CHANGE.httpStatus.value()
 
     cleanup:
-    repository.deleteById(organization.id)
+    repository.deleteById(organizationDTO.id)
 
     where:
     initialStatus | newStatus
@@ -303,7 +303,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
     given: 'remove the admin role from the test user'
     UserRoleDTO currentTestUserRole = userRoleRepository.findById('test-adminA@email.com').orElse(null)
     userRoleRepository.deleteById('test-adminA@email.com')
-    List<OrganizationDTO> savedOrgs = repository.saveAll([
+    List<OrganizationDTO> organizationDTOs = repository.saveAll([
         new OrganizationDTO(
             authorizationCode: 'orgAuthCode',
             taxId: 'taxIdA',
@@ -330,7 +330,7 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
     then:
     response.statusCode == HttpStatus.OK
     response.body.total == 1
-    response.body.results*.id == savedOrgs.findAll { it.authorizationCode == 'orgAuthCode' }*.id
+    response.body.results*.id == organizationDTOs.findAll { it.authorizationCode == 'orgAuthCode' }*.id
 
     cleanup: 'restore admin role to test user'
     userRoleRepository.save(currentTestUserRole)

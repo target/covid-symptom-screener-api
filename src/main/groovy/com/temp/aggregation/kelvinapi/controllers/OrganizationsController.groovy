@@ -35,9 +35,9 @@ class OrganizationsController {
 
   @PostMapping('/organizations')
   @ResponseStatus(HttpStatus.CREATED)
-  Organization createOrganization(@Valid @RequestBody Organization organizationDTO) {
-    log.info("Request to create an organization with name ${organizationDTO.orgName}")
-    return service.create(organizationDTO)
+  Organization createOrganization(@Valid @RequestBody Organization organization) {
+    log.info("Request to create an organization with name ${organization.orgName}")
+    return service.create(organization)
   }
 
   @GetMapping('/organizations/{id}')
@@ -46,19 +46,19 @@ class OrganizationsController {
                                @RequestHeader(value = 'x-organization-pin', required = false) String organizationCode
   ) {
     log.info("Request to get an organization for id $id")
-    Organization organizationDTO = service.getOrganization(id)
-    if (!organizationCode || organizationDTO?.authorizationCode != organizationCode) {
+    Organization organization = service.getOrganization(id)
+    if (!organizationCode || organization?.authorizationCode != organizationCode) {
       userRoleService.requireAdmin()
     }
-    return organizationDTO
+    return organization
   }
 
   @PutMapping('/organizations/{id}')
   @ResponseStatus(HttpStatus.OK)
-  Organization updateOrganization(@PathVariable String id, @Valid @RequestBody Organization organizationDTO) {
-    log.info("Request to update an organization for id $id to status ${organizationDTO.approvalStatus}")
+  Organization updateOrganization(@PathVariable String id, @Valid @RequestBody Organization organization) {
+    log.info("Request to update an organization for id $id to status ${organization.approvalStatus}")
     userRoleService.requireAdmin()
-    return service.save(id, organizationDTO)
+    return service.save(id, organization)
   }
 
   @GetMapping('/organizations')

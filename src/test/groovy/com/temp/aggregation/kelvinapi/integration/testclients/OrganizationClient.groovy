@@ -18,10 +18,10 @@ import static org.springframework.web.bind.annotation.RequestMethod.*
 interface OrganizationClient {
 
   @RequestMapping(method = POST, value = '/organizations')
-  ResponseEntity<Organization> createOrganization(@RequestBody Organization organizationDTO)
+  ResponseEntity<Organization> createOrganization(@RequestBody Organization organization)
 
   @RequestMapping(method = PUT, value = '/organizations/{id}')
-  ResponseEntity<Organization> updateOrganization(@PathVariable(value = 'id') String id, @RequestBody Organization organizationDTO)
+  ResponseEntity<Organization> updateOrganization(@PathVariable(value = 'id') String id, @RequestBody Organization organization)
 
   @RequestMapping(method = GET, value = '/organizations/{id}')
   ResponseEntity<Organization> getOrganization(@PathVariable(value = 'id') String id,

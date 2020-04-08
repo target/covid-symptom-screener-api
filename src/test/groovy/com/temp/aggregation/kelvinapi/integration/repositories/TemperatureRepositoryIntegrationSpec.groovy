@@ -22,7 +22,7 @@ class TemperatureRepositoryIntegrationSpec extends BaseIntegrationSpec {
     void 'can save a list of temperatures, and retrieve them by org id'() {
         setup:
         String organizationId = 'testOrg'
-        List<TemperatureDTO> temperatures = [
+        List<TemperatureDTO> temperatureDTOs = [
                 new TemperatureDTO(
                         organizationId: organizationId,
                         temperature: 98.6,
@@ -40,7 +40,7 @@ class TemperatureRepositoryIntegrationSpec extends BaseIntegrationSpec {
         ]
 
         when:
-        List<TemperatureDTO> results = repository.saveAll(temperatures)
+        List<TemperatureDTO> results = repository.saveAll(temperatureDTOs)
 
         then:
         results.size() == 2

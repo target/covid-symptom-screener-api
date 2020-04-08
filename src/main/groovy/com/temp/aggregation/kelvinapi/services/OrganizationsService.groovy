@@ -26,45 +26,45 @@ class OrganizationsService {
   private static final Random RANDOM_NUM =
       new SecureRandom(ByteBuffer.allocate(8).putLong(System.currentTimeMillis()).array())
 
-  Organization create(Organization organizationDTO) {
-    if (repository.findByTaxId(organizationDTO.taxId)) {
-      throw new ServiceException(ServiceError.ORGANIZATION_CONFLICT, organizationDTO.taxId)
+  Organization create(Organization organization) {
+    if (repository.findByTaxId(organization.taxId)) {
+      throw new ServiceException(ServiceError.ORGANIZATION_CONFLICT, organization.taxId)
     }
-    OrganizationDTO organization = new OrganizationDTO()
-    InvokerHelper.setProperties(organization, organizationDTO.properties)
-    organization.approvalStatus = APPLIED
-    OrganizationDTO saved = repository.save(organization)
-    Organization dto = new Organization()
-    InvokerHelper.setProperties(dto, saved.properties)
-    return dto
+    OrganizationDTO organizationDTO = new OrganizationDTO()
+    InvokerHelper.setProperties(organizationDTO, organization.properties)
+    organizationDTO.approvalStatus = APPLIED
+    OrganizationDTO saved = repository.save(organizationDTO)
+    Organization created = new Organization()
+    InvokerHelper.setProperties(created, saved.properties)
+    return created
   }
 
   Organization getOrganization(String id) {
-    OrganizationDTO organization = repository.findById(id).orElseThrow {
+    OrganizationDTO organizationDTO = repository.findById(id).orElseThrow {
       new ServiceException(ServiceError.NOT_FOUND, 'Organization')
     }
-    Organization dto = new Organization()
-    InvokerHelper.setProperties(dto, organization.properties)
-    return dto
+    Organization organization = new Organization()
+    InvokerHelper.setProperties(organization, organizationDTO.properties)
+    return organization
   }
 
-  Organization save(String id, Organization organizationDTO) {
-    OrganizationDTO organization = repository.findById(id).orElseThrow {
+  Organization save(String id, Organization organization) {
+    OrganizationDTO organizationDTO = repository.findById(id).orElseThrow {
       new ServiceException(ServiceError.NOT_FOUND, 'Organization')
     }
 
-    validateStateChange(organization, organizationDTO)
+    validateStateChange(organizationDTO, organization)
 
-    if (!organization.authorizationCode && organizationDTO.approvalStatus == APPROVED) {
-      organization.authorizationCode = generateAuthorizationCode()
+    if (!organizationDTO.authorizationCode && organization.approvalStatus == APPROVED) {
+      organizationDTO.authorizationCode = generateAuthorizationCode()
     }
 
-    copyUpdateablePropertiesToExisting(organization, organizationDTO)
+    copyUpdateablePropertiesToExisting(organizationDTO, organization)
 
-    OrganizationDTO saved = repository.save(organization)
-    Organization dto = new Organization()
-    InvokerHelper.setProperties(dto, saved.properties)
-    return dto
+    OrganizationDTO saved = repository.save(organizationDTO)
+    Organization updated = new Organization()
+    InvokerHelper.setProperties(updated, saved.properties)
+    return updated
   }
 
   Page<Organization> find(String authorizationCode, String taxId, String name, ApprovalStatus status, Pageable pageable) {
@@ -77,22 +77,22 @@ class OrganizationsService {
         orgName: name,
         approvalStatus: status)
     Page<OrganizationDTO> found = repository.findAll(Example.of(example, matcher), pageable)
-    List<Organization> organizationDTOS = found.content.collect { organization ->
-      Organization dto = new Organization()
-      InvokerHelper.setProperties(dto, organization.properties)
-      return dto
+    List<Organization> organizations = found.content.collect { organizationDTO ->
+      Organization organization = new Organization()
+      InvokerHelper.setProperties(organization, organizationDTO.properties)
+      return organization
     }
-    return new PageImpl<>(organizationDTOS, found.pageable, found.totalElements)
+    return new PageImpl<>(organizations, found.pageable, found.totalElements)
   }
 
   Organization getApprovedOrganizationByAuthCode(String authorizationCode) {
-    OrganizationDTO org = repository.findByApprovalStatusAndAuthorizationCode(APPROVED, authorizationCode)
-    if (!org) {
+    OrganizationDTO organizationDTO = repository.findByApprovalStatusAndAuthorizationCode(APPROVED, authorizationCode)
+    if (!organizationDTO) {
       throw new ServiceException(ServiceError.ORGANIZATION_NOT_APPROVED)
     }
-    Organization dto = new Organization()
-    InvokerHelper.setProperties(dto, org.properties)
-    return dto
+    Organization organization = new Organization()
+    InvokerHelper.setProperties(organization, organizationDTO.properties)
+    return organization
   }
 
   private String generateAuthorizationCode() {
@@ -113,20 +113,20 @@ class OrganizationsService {
     return base36.padLeft(5, '0').take(5)
   }
 
-  private void validateStateChange(OrganizationDTO current, Organization dto) {
+  private void validateStateChange(OrganizationDTO current, Organization organization) {
     boolean valid
     switch (current.approvalStatus) {
       case APPLIED:
-        valid = [APPLIED, APPROVED, REJECTED].contains(dto.approvalStatus)
+        valid = [APPLIED, APPROVED, REJECTED].contains(organization.approvalStatus)
         break
       case APPROVED:
-        valid = [APPROVED, SUSPENDED].contains(dto.approvalStatus)
+        valid = [APPROVED, SUSPENDED].contains(organization.approvalStatus)
         break
       case REJECTED:
-        valid = [REJECTED, APPLIED].contains(dto.approvalStatus)
+        valid = [REJECTED, APPLIED].contains(organization.approvalStatus)
         break
       case SUSPENDED:
-        valid = [SUSPENDED, APPROVED].contains(dto.approvalStatus)
+        valid = [SUSPENDED, APPROVED].contains(organization.approvalStatus)
         break
       default:
         // we have bad data; shouldn't happen
@@ -138,14 +138,14 @@ class OrganizationsService {
     }
   }
 
-  private void copyUpdateablePropertiesToExisting(OrganizationDTO existing, Organization dto) {
-    existing.approvalStatus = dto.approvalStatus
-    existing.contactEmail = dto.contactEmail
-    existing.contactJobTitle = dto.contactJobTitle
-    existing.contactName = dto.contactName
-    existing.contactPhone = dto.contactPhone
-    existing.sector = dto.sector
-    existing.taxId = dto.taxId
-    existing.orgName = dto.orgName
+  private void copyUpdateablePropertiesToExisting(OrganizationDTO existing, Organization organization) {
+    existing.approvalStatus = organization.approvalStatus
+    existing.contactEmail = organization.contactEmail
+    existing.contactJobTitle = organization.contactJobTitle
+    existing.contactName = organization.contactName
+    existing.contactPhone = organization.contactPhone
+    existing.sector = organization.sector
+    existing.taxId = organization.taxId
+    existing.orgName = organization.orgName
   }
 }

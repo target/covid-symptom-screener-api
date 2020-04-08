@@ -44,11 +44,11 @@ class UserRoleController {
 
   @PostMapping('/user-roles')
   @ResponseStatus(HttpStatus.CREATED)
-  UserRole createOrUpdateUserRole(@RequestBody UserRole userRoleDTO) {
-    log.info("Request to create a user role for user ${userRoleDTO.emailAddress} and role ${userRoleDTO.role}")
+  UserRole createOrUpdateUserRole(@RequestBody UserRole userRole) {
+    log.info("Request to create a user role for user ${userRole.emailAddress} and role ${userRole.role}")
 
     userRoleService.requireAdmin()
-    return userRoleService.save(userRoleDTO)
+    return userRoleService.save(userRole)
   }
 
   @DeleteMapping('/user-roles')

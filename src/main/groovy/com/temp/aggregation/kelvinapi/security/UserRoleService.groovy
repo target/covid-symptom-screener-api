@@ -40,9 +40,9 @@ class UserRoleService {
     UserRoleDTO found = userRoleRepository.findById(requestContext.userContext?.email).orElse(
         new UserRoleDTO(emailAddress: requestContext.userContext?.email, role: Role.USER)
     )
-    UserRole dto = new UserRole()
-    InvokerHelper.setProperties(dto, found.properties)
-    return dto
+    UserRole userRole = new UserRole()
+    InvokerHelper.setProperties(userRole, found.properties)
+    return userRole
   }
 
   Page<UserRole> findBy(Role role, String emailAddress, Pageable pageable) {
@@ -54,24 +54,24 @@ class UserRoleService {
         role: role
     )
     Page<UserRoleDTO> found = userRoleRepository.findAll(Example.of(example, matcher), pageable)
-    List<UserRole> dtos = found.content.collect { userRole ->
-      UserRole dto = new UserRole()
-      InvokerHelper.setProperties(dto, userRole.properties)
-      return dto
+    List<UserRole> userRoles = found.content.collect { userRoleDTO ->
+      UserRole userRole = new UserRole()
+      InvokerHelper.setProperties(userRole, userRoleDTO.properties)
+      return userRole
     }
-    return new PageImpl<>(dtos, found.pageable, found.totalElements)
+    return new PageImpl<>(userRoles, found.pageable, found.totalElements)
   }
 
   void deleteUserRole(String emailAddress) {
     userRoleRepository.deleteById(emailAddress)
   }
 
-  UserRole save(UserRole userRoleDTO) {
-    UserRoleDTO userRole = new UserRoleDTO()
-    InvokerHelper.setProperties(userRole, userRoleDTO.properties)
-    UserRoleDTO saved = userRoleRepository.save(userRole)
-    UserRole dto = new UserRole()
-    InvokerHelper.setProperties(dto, saved.properties)
-    return dto
+  UserRole save(UserRole userRole) {
+    UserRoleDTO userRoleDTO = new UserRoleDTO()
+    InvokerHelper.setProperties(userRoleDTO, userRole.properties)
+    UserRoleDTO saved = userRoleRepository.save(userRoleDTO)
+    UserRole updated = new UserRole()
+    InvokerHelper.setProperties(updated, saved.properties)
+    return updated
   }
 }

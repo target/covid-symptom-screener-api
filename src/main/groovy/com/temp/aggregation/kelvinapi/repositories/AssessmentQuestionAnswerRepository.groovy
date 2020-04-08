@@ -5,5 +5,5 @@ import com.temp.aggregation.kelvinapi.domain.TemperatureDTO
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface AssessmentQuestionAnswerRepository extends JpaRepository<AssessmentQuestionAnswerDTO, String> {
-  List<AssessmentQuestionAnswerDTO> findAllByTemperature(TemperatureDTO temperature)
+  List<AssessmentQuestionAnswerDTO> findAllByTemperature(TemperatureDTO temperatureDTO)
 }

@@ -19,11 +19,11 @@ import static org.springframework.web.bind.annotation.RequestMethod.*
 )
 interface AssessmentQuestionClient {
   @RequestMapping(method = POST, value = '/questions')
-  ResponseEntity<AssessmentQuestion> createQuestion(@RequestBody AssessmentQuestion assessmentQuestionDTO)
+  ResponseEntity<AssessmentQuestion> createQuestion(@RequestBody AssessmentQuestion question)
 
   @RequestMapping(method = PUT, value = '/questions/{id}')
   ResponseEntity<AssessmentQuestion> updateQuestion(@PathVariable(value = 'id') String id,
-                                                    @RequestBody AssessmentQuestion assessmentQuestionDTO)
+                                                    @RequestBody AssessmentQuestion question)
 
   @RequestMapping(method = GET, value = '/questions/{id}')
   ResponseEntity<AssessmentQuestion> getById(@PathVariable(value = 'id') String id)

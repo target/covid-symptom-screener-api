@@ -47,7 +47,7 @@ class OrganizationsServiceSpec extends Specification {
     )
 
     when:
-    Organization organizationDTO = service.create(update)
+    Organization organization = service.create(update)
 
     then:
     1 * service.repository.findByTaxId(update.taxId) >> null
@@ -63,14 +63,14 @@ class OrganizationsServiceSpec extends Specification {
     }) >> saved
     0 * _
 
-    organizationDTO.id == saved.id
-    organizationDTO.taxId == saved.taxId
-    organizationDTO.contactName == saved.contactName
-    organizationDTO.contactPhone == saved.contactPhone
-    organizationDTO.contactJobTitle == saved.contactJobTitle
-    organizationDTO.orgName == saved.orgName
-    organizationDTO.approvalStatus == APPLIED
-    organizationDTO.sector == saved.sector
+    organization.id == saved.id
+    organization.taxId == saved.taxId
+    organization.contactName == saved.contactName
+    organization.contactPhone == saved.contactPhone
+    organization.contactJobTitle == saved.contactJobTitle
+    organization.orgName == saved.orgName
+    organization.approvalStatus == APPLIED
+    organization.sector == saved.sector
   }
 
   void 'create does not allow duplicate tax id'() {
@@ -96,7 +96,7 @@ class OrganizationsServiceSpec extends Specification {
 
   void 'save sets an auth code when status is approved'() {
     setup:
-    Organization dto = new Organization(
+    Organization organization = new Organization(
         taxId: '123',
         contactName: 'Ops Guy',
         contactEmail: 'opsGuy@target.com',
@@ -119,39 +119,39 @@ class OrganizationsServiceSpec extends Specification {
     )
 
     when:
-    Organization organizationDTO = service.save('o1', dto)
+    Organization saved = service.save('o1', organization)
 
     then:
     1 * service.repository.findById('o1') >> Optional.of(existing)
     1 * service.repository.existsByAuthorizationCode(_ as String) >> true
     1 * service.repository.existsByAuthorizationCode(_ as String) >> false
     1 * service.repository.save({
-      assert it.taxId == dto.taxId
-      assert it.orgName == dto.orgName
+      assert it.taxId == organization.taxId
+      assert it.orgName == organization.orgName
       assert it.approvalStatus == ApprovalStatus.APPROVED
       assert it.authorizationCode
       return true
     }) >> existing
     0 * _
 
-    organizationDTO.id == existing.id
-    organizationDTO.taxId == existing.taxId
-    organizationDTO.contactName == existing.contactName
-    organizationDTO.contactPhone == existing.contactPhone
-    organizationDTO.contactJobTitle == existing.contactJobTitle
-    organizationDTO.orgName == existing.orgName
-    organizationDTO.approvalStatus == APPROVED
-    organizationDTO.sector == existing.sector
+    saved.id == existing.id
+    saved.taxId == existing.taxId
+    saved.contactName == existing.contactName
+    saved.contactPhone == existing.contactPhone
+    saved.contactJobTitle == existing.contactJobTitle
+    saved.orgName == existing.orgName
+    saved.approvalStatus == APPROVED
+    saved.sector == existing.sector
   }
 
   void 'save throws exception if organization is not found'() {
     setup:
-    Organization dto = new Organization(
+    Organization organization = new Organization(
         taxId: '123',
         orgName: 'Target'
     )
     when:
-    service.save('o1', dto)
+    service.save('o1', organization)
 
     then:
     1 * service.repository.findById('o1') >> Optional.empty()
@@ -163,7 +163,7 @@ class OrganizationsServiceSpec extends Specification {
 
   void 'save fails when unique auth code is not generated on approve update'() {
     setup:
-    Organization dto = new Organization(
+    Organization organization = new Organization(
         taxId: '123',
         orgName: 'Target',
         approvalStatus: ApprovalStatus.APPROVED
@@ -172,7 +172,7 @@ class OrganizationsServiceSpec extends Specification {
     OrganizationDTO existing = new OrganizationDTO(id: 'o1')
 
     when:
-    service.save('o1', dto)
+    service.save('o1', organization)
 
     then:
     1 * service.repository.findById('o1') >> Optional.of(existing)

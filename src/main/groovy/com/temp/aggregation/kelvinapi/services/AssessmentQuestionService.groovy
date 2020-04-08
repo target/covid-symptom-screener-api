@@ -22,42 +22,42 @@ class AssessmentQuestionService {
     Sort questionSort = Sort.by('sortPriority', 'displayValue')
     List<AssessmentQuestionDTO> assessmentQuestions = repository.findAllByStatusIn(statuses, questionSort)
     return assessmentQuestions.collect {
-      AssessmentQuestion dto = new AssessmentQuestion()
-      InvokerHelper.setProperties(dto, it.properties)
-      return dto
+      AssessmentQuestion question = new AssessmentQuestion()
+      InvokerHelper.setProperties(question, it.properties)
+      return question
     }
   }
 
-  AssessmentQuestion create(AssessmentQuestion assessmentQuestionDTO) {
-    if (repository.existsByDisplayValue(assessmentQuestionDTO.displayValue)) {
+  AssessmentQuestion create(AssessmentQuestion question) {
+    if (repository.existsByDisplayValue(question.displayValue)) {
       throw new ServiceException(ServiceError.ASSESSMENT_QUESTION_CONFLICT)
     }
     AssessmentQuestionDTO assessmentQuestion = new AssessmentQuestionDTO()
-    InvokerHelper.setProperties(assessmentQuestion, assessmentQuestionDTO.properties)
+    InvokerHelper.setProperties(assessmentQuestion, question.properties)
     AssessmentQuestionDTO saved = repository.save(assessmentQuestion)
-    AssessmentQuestion dto = new AssessmentQuestion()
-    InvokerHelper.setProperties(dto, saved.properties)
-    return dto
+    AssessmentQuestion created = new AssessmentQuestion()
+    InvokerHelper.setProperties(created, saved.properties)
+    return created
   }
 
   AssessmentQuestion findById(String id) {
-    AssessmentQuestionDTO question = repository.findById(id).orElseThrow {
+    AssessmentQuestionDTO questionDTO = repository.findById(id).orElseThrow {
       new ServiceException(ServiceError.NOT_FOUND, 'AssessmentQuestion')
     }
-    AssessmentQuestion dto = new AssessmentQuestion()
-    InvokerHelper.setProperties(dto, question.properties)
-    return dto
+    AssessmentQuestion question = new AssessmentQuestion()
+    InvokerHelper.setProperties(question, questionDTO.properties)
+    return question
   }
 
-  AssessmentQuestion save(String id, AssessmentQuestion assessmentQuestionDTO) {
-    AssessmentQuestionDTO assessmentQuestion = repository.findById(id).orElseThrow {
+  AssessmentQuestion save(String id, AssessmentQuestion question) {
+    AssessmentQuestionDTO questionDTO = repository.findById(id).orElseThrow {
       new ServiceException(ServiceError.NOT_FOUND, 'AssessmentQuestion')
     }
-    setUpdatableProperties(assessmentQuestion, assessmentQuestionDTO)
-    AssessmentQuestionDTO saved = repository.save(assessmentQuestion)
-    AssessmentQuestion dto = new AssessmentQuestion()
-    InvokerHelper.setProperties(dto, saved.properties)
-    return dto
+    setUpdatableProperties(questionDTO, question)
+    AssessmentQuestionDTO saved = repository.save(questionDTO)
+    AssessmentQuestion updated = new AssessmentQuestion()
+    InvokerHelper.setProperties(updated, saved.properties)
+    return updated
   }
 
   AssessmentQuestion disable(String id) {
@@ -66,14 +66,14 @@ class AssessmentQuestionService {
     }
     existing.status = DISABLED
     AssessmentQuestionDTO saved = repository.save(existing)
-    AssessmentQuestion dto = new AssessmentQuestion()
-    InvokerHelper.setProperties(dto, saved.properties)
-    return dto
+    AssessmentQuestion question = new AssessmentQuestion()
+    InvokerHelper.setProperties(question, saved.properties)
+    return question
   }
 
-  private void setUpdatableProperties(AssessmentQuestionDTO question, AssessmentQuestion dto) {
-    question.displayValue = dto.displayValue
-    question.status = dto.status
-    question.sortPriority = dto.sortPriority
+  private void setUpdatableProperties(AssessmentQuestionDTO questionDTO, AssessmentQuestion question) {
+    questionDTO.displayValue = question.displayValue
+    questionDTO.status = question.status
+    questionDTO.sortPriority = question.sortPriority
   }
 }

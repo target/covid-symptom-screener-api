@@ -43,7 +43,7 @@ class AssessmentQuestionAnswerRepositoryIntegrationSpec extends BaseIntegrationS
     )
     savedOrganization.approvalStatus = APPROVED
     savedOrganization = organizationRepository.save(savedOrganization)
-    TemperatureDTO savedTemperature = temperatureRepository.save(
+    TemperatureDTO savedTemperatureDTOs = temperatureRepository.save(
         new TemperatureDTO(
             temperature: 98.6f,
             userId: 'test-user',
@@ -61,7 +61,7 @@ class AssessmentQuestionAnswerRepositoryIntegrationSpec extends BaseIntegrationS
     when:
     AssessmentQuestionAnswerDTO answer = repository.save(
         new AssessmentQuestionAnswerDTO(
-            temperature: savedTemperature,
+            temperature: savedTemperatureDTOs,
             question: savedQuestion,
             answer: true
 
@@ -70,7 +70,7 @@ class AssessmentQuestionAnswerRepositoryIntegrationSpec extends BaseIntegrationS
 
     then:
     answer.id
-    answer.temperature.id == savedTemperature.id
+    answer.temperature.id == savedTemperatureDTOs.id
     answer.question.id == savedQuestion.id
 
     and:

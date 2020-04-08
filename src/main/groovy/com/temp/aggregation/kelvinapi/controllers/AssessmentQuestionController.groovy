@@ -28,18 +28,18 @@ class AssessmentQuestionController {
 
   @PostMapping('/questions')
   @ResponseStatus(HttpStatus.CREATED)
-  AssessmentQuestion createQuestion(@Valid @RequestBody AssessmentQuestion assessmentQuestionDTO) {
-    log.info("Request to create AssessmentQuestion: ${assessmentQuestionDTO.displayValue}")
+  AssessmentQuestion createQuestion(@Valid @RequestBody AssessmentQuestion question) {
+    log.info("Request to create AssessmentQuestion: ${question.displayValue}")
     userRoleService.requireAdmin()
-    return assessmentQuestionService.create(assessmentQuestionDTO)
+    return assessmentQuestionService.create(question)
   }
 
   @PutMapping('/questions/{id}')
   @ResponseStatus(HttpStatus.OK)
-  AssessmentQuestion updateQuestion(@PathVariable String id, @Valid @RequestBody AssessmentQuestion assessmentQuestionDTO) {
+  AssessmentQuestion updateQuestion(@PathVariable String id, @Valid @RequestBody AssessmentQuestion question) {
     log.info("Request to update AssessmentQuestion: $id")
     userRoleService.requireAdmin()
-    return assessmentQuestionService.save(id, assessmentQuestionDTO)
+    return assessmentQuestionService.save(id, question)
   }
 
   @GetMapping('/questions')
