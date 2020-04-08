@@ -18,7 +18,7 @@ import static com.temp.aggregation.kelvinapi.domain.AssessmentQuestionStatus.ENA
     name = 'assessment_questions'
 )
 @EntityListeners(AuditingEntityListener)
-@EqualsAndHashCode(excludes = ['answers'])
+@EqualsAndHashCode
 class AssessmentQuestionDTO {
   @Id
   @GeneratedValue(generator = 'system-uuid')
@@ -27,8 +27,6 @@ class AssessmentQuestionDTO {
   String displayValue
   AssessmentQuestionStatus status = ENABLED
   int sortPriority
-  @OneToMany(mappedBy = 'question', fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-  Set<AssessmentQuestionAnswerDTO> answers
   @CreatedDate
   Instant created
   @CreatedBy
