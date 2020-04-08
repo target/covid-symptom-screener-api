@@ -433,7 +433,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/assessment_question_list_response'
+                type: array
+                items:
+                  $ref: '#/components/schemas/assessment_question'
         <<: *get-responses
     post:
       requestBody:
@@ -614,13 +616,10 @@ components:
           type: string
           format: date-time
           description: Timestamp when this measurement was taken
-        question_answers_map:
-          type: object
-          additionalProperties:
-            type: string
-          example:
-            question_id_1: true
-            question_id_2: false
+        question_answers:
+          type: array
+          items:
+            $ref: '#/components/schemas/question_answer'
         <<: *audit-fields
 
     temperature_list:
@@ -726,18 +725,19 @@ components:
           description: The list response returns questions sorted by sortPriority then display value.
         <<: *audit-fields
 
-    assessment_question_list_response:
+    question_answer:
       type: object
-      description: A list of assessment questions
+      description: Answer to the assessment question.
       properties:
-        results:
-          description: The assessment questions return.
-          type: array
-          items:
-            $ref: '#/components/schemas/assessment_question'
-        total:
-          description: Total count of assessment questions
-          type: integer
+        id:
+          type: string
+          description: The ID of the answer
+          readOnly: true
+        ansswer:
+          type: boolean
+          description: The yes/no boolean answer
+        question:
+          $ref: '#/components/schemas/enumeration'
 
   parameters:
     authorization:
