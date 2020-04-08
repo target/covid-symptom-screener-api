@@ -60,7 +60,7 @@ class TemperaturesService {
     }
     List<TemperatureDTO> temperatureDTOs = toSave.collect { temperature ->
       TemperatureDTO temperatureDTO = new TemperatureDTO()
-      InvokerHelper.setProperties(temperatureDTO, temperatureDTO.properties)
+      InvokerHelper.setProperties(temperatureDTO, temperature.properties)
       temperatureDTO.organizationId = organization.id
       populateDTOQuestionAnswersFromTemperature(temperature, temperatureDTO)
       return temperatureDTO
