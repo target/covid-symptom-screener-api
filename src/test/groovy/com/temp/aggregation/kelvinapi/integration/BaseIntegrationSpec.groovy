@@ -19,7 +19,7 @@ import spock.lang.Stepwise
 @ActiveProfiles('integration')
 @EnableFeignClients
 @Stepwise
-class BaseIntegrationSpec extends Specification {
+class BaseIntegrationSpec extends Specification implements IntegrationPollingTrait {
   @LocalServerPort
   int serverPort
 

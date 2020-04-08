@@ -29,6 +29,7 @@ class AssessmentQuestionControllerFunctionalSpec extends BaseIntegrationSpec {
   UserRoleRepository userRoleRepository
 
   void setup() {
+    cleanup()
     userRoleRepository.save(
         new UserRoleDTO(emailAddress: 'test-adminA@email.com', role: ADMIN)
     )
@@ -178,7 +179,7 @@ class AssessmentQuestionControllerFunctionalSpec extends BaseIntegrationSpec {
 
     then:
     response.statusCode == HttpStatus.OK
-    response.body.size == 2
+    response.body.size() == 2
     response.body.find { it.id == savedA.id && it.sortPriority == 10 }
     response.body.find { it.id == savedB.id && it.sortPriority == 20 }
     response.body.first().sortPriority == 10

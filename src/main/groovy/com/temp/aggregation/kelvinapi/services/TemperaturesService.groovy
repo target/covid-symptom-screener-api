@@ -4,6 +4,7 @@ import com.temp.aggregation.kelvinapi.domain.*
 import com.temp.aggregation.kelvinapi.exceptions.ServiceError
 import com.temp.aggregation.kelvinapi.exceptions.ServiceException
 import com.temp.aggregation.kelvinapi.repositories.AssessmentQuestionAnswerRepository
+import com.temp.aggregation.kelvinapi.repositories.OrganizationRepository
 import com.temp.aggregation.kelvinapi.repositories.TemperatureRepository
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,8 +16,6 @@ import org.springframework.transaction.annotation.Transactional
 
 import javax.persistence.EntityManager
 
-import static com.temp.aggregation.kelvinapi.domain.ApprovalStatus.APPROVED
-
 @Service
 class TemperaturesService {
 
@@ -25,6 +24,9 @@ class TemperaturesService {
 
   @Autowired
   OrganizationsService organizationService
+
+  @Autowired
+  OrganizationRepository organizationRepository
 
   @Autowired
   AssessmentQuestionService questionService
@@ -96,29 +98,27 @@ class TemperaturesService {
     return temperatureDTO
   }
 
-  private Temperature buildTemperatureFrom(TemperatureDTO temperatureDTO) {
-    Organization organization = organizationService.getOrganization(temperatureDTO.organizationId)
-    if (!organization || organization.approvalStatus != APPROVED) {
-      throw new ServiceException(ServiceError.ORGANIZATION_NOT_APPROVED)
-    }
+  private Temperature buildTemperatureFrom(TemperatureDTO temperature) {
+    OrganizationDTO organizationDTO = organizationRepository.findById(temperature.organizationId).orElse(null)
+    String orgName = organizationDTO?.orgName ?: 'UNKNOWN'
     return new Temperature(
-        id: temperatureDTO.id,
-        organizationId: temperatureDTO.organizationId,
-        organizationName: organization.orgName,
-        temperature: temperatureDTO.temperature,
-        userId: temperatureDTO.userId,
-        latitude: temperatureDTO.latitude,
-        longitude: temperatureDTO.longitude,
-        timestamp: temperatureDTO.timestamp,
-        created: temperatureDTO.created,
-        createdBy: temperatureDTO.createdBy,
-        lastModified: temperatureDTO.lastModified,
-        lastModifiedBy: temperatureDTO.lastModifiedBy,
-        questionAnswers: temperatureDTO.questionAnswers.collect { questionAnswer ->
-          AssessmentQuestion question = new AssessmentQuestion()
-          InvokerHelper.setProperties(question, questionAnswer.question.properties)
+        id: temperature.id,
+        organizationId: temperature.organizationId,
+        organizationName: orgName,
+        temperature: temperature.temperature,
+        userId: temperature.userId,
+        latitude: temperature.latitude,
+        longitude: temperature.longitude,
+        timestamp: temperature.timestamp,
+        created: temperature.created,
+        createdBy: temperature.createdBy,
+        lastModified: temperature.lastModified,
+        lastModifiedBy: temperature.lastModifiedBy,
+        questionAnswers: temperature.questionAnswers.collect { questionAnswer ->
+          AssessmentQuestion questionDTO = new AssessmentQuestion()
+          InvokerHelper.setProperties(questionDTO, questionAnswer.question.properties)
           new AssessmentQuestionAnswer(
-              question: question,
+              question: questionDTO,
               answer: questionAnswer.answer
           )
         }.toSet()

@@ -36,7 +36,6 @@ class AssessmentQuestionServiceIntegrationSpec extends BaseIntegrationSpec {
     List<AssessmentQuestion> retrieved = service.findByStatuses([ENABLED])
 
     then:
-    retrieved.size() == 2
     retrieved*.id.contains(savedA.id)
     retrieved*.id.contains(savedB.id)
     retrieved.every { question ->

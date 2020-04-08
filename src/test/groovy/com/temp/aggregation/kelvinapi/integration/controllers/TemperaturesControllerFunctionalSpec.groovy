@@ -146,6 +146,91 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
     }
   }
 
+  void 'can get all temperatures; does not fail with bad org id on temperature or unapproved org'() {
+    given:
+    OrganizationDTO savedOrg = organizationRepository.save(
+        new OrganizationDTO(
+            orgName: 'testOrgA',
+            taxId: '111',
+            approvalStatus: SUSPENDED,
+            sector: OTHER_PRIVATE_BUSINESS,
+            contactName: 'Test Contact',
+            contactEmail: 'test-contact@email.com',
+            contactPhone: '111-111-1111'
+        )
+    )
+    List<TemperatureDTO> temperatures = [
+        new TemperatureDTO(
+            organizationId: savedOrg.id,
+            temperature: 98.6,
+            userId: 'test-user-a',
+            latitude: 44.934940,
+            longitude: -93.158660
+        ),
+        new TemperatureDTO(
+            organizationId: savedOrg.id,
+            temperature: 100.5,
+            userId: 'test-user-b',
+            latitude: 44.934941,
+            longitude: -93.158661
+        ),
+        new TemperatureDTO(
+            organizationId: 'aDifferentOrg',
+            temperature: 100.5,
+            userId: 'test-user-b',
+            latitude: 44.934941,
+            longitude: -93.158661
+        )
+    ]
+    List<TemperatureDTO> savedTemperatures = temperatureRepository.saveAll(temperatures)
+    AssessmentQuestionDTO savedQuestionA = assessmentQuestionRepository.save(
+        new AssessmentQuestionDTO(
+            displayValue: 'Wha?'
+        )
+    )
+    AssessmentQuestionDTO savedQuestionB = assessmentQuestionRepository.save(
+        new AssessmentQuestionDTO(
+            displayValue: 'Huh?'
+        )
+    )
+
+    assessmentQuestionAnswerRepository.saveAll(savedTemperatures.collectMany { temperature ->
+      return [
+          new AssessmentQuestionAnswerDTO(
+              temperature: temperature,
+              question: savedQuestionA,
+              answer: true
+          ),
+          new AssessmentQuestionAnswerDTO(
+              temperature: temperature,
+              question: savedQuestionB,
+              answer: true
+          )
+      ]
+    })
+
+    when:
+    ResponseEntity<ListResponse<Temperature>> response = client.getTemperatures(null)
+
+    then:
+    response.statusCode == HttpStatus.OK
+    response.body.total == 3
+    response.body.results*.temperature.containsAll([98.6f, 100.5f])
+    response.body.results*.userId.containsAll(['test-user-a', 'test-user-b'])
+    response.body.results*.organizationId.sort() == [savedOrg.id, savedOrg.id, 'aDifferentOrg'].sort()
+    response.body.results*.organizationName.sort() == ['UNKNOWN', 'testOrgA', 'testOrgA']
+    response.body.results*.latitude.unique() == [44.934940f]
+    response.body.results*.longitude.unique() == [-93.158661f]
+    response.body.results*.created
+    response.body.results*.createdBy
+    response.body.results*.lastModified
+    response.body.results*.lastModifiedBy
+    response.body.results.every { temperature ->
+      temperature.questionAnswers.find { it.question.id == savedQuestionA.id }
+      temperature.questionAnswers.find { it.question.id == savedQuestionB.id }
+    }
+  }
+
   void 'can save temperatures via the API with questions and answers'() {
     String orgAuthCode = 'auth1'
     OrganizationDTO savedOrg = organizationRepository.save(
@@ -267,7 +352,7 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
     approvalStatus << [APPLIED, REJECTED, SUSPENDED]
   }
 
-  void 'save temperature with an org name  does not persist name'() {
+  void 'save temperature with an org name does not persist name'() {
     given:
     String orgAuthCode = 'auth1'
     organizationRepository.save(
