@@ -10,10 +10,15 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
+
+import javax.validation.Valid
+import javax.validation.constraints.NotEmpty
 
 @Slf4j
 @RestController
+@Validated
 class TemperaturesController {
   @Autowired
   TemperaturesService temperaturesService
@@ -50,7 +55,7 @@ class TemperaturesController {
   @ResponseStatus(HttpStatus.CREATED)
   List<Temperature> saveTemperatures(
       @RequestHeader('x-organization-pin') String organizationPin,
-      @RequestBody List<Temperature> temperatures
+      @Valid @RequestBody @NotEmpty(message = 'List of temperatures cannot be empty.') List<Temperature> temperatures
   ) {
     log.info("Request to create temperature with auth code $organizationPin")
 

@@ -9,11 +9,15 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.WebDataBinder
 import org.springframework.web.bind.annotation.*
 
+import javax.validation.Valid
+
 @Slf4j
 @RestController
+@Validated
 class UserRoleController {
   @Autowired
   UserRoleService userRoleService
@@ -44,7 +48,7 @@ class UserRoleController {
 
   @PostMapping('/user-roles')
   @ResponseStatus(HttpStatus.CREATED)
-  UserRole createOrUpdateUserRole(@RequestBody UserRole userRole) {
+  UserRole createOrUpdateUserRole(@Valid @RequestBody UserRole userRole) {
     log.info("Request to create a user role for user ${userRole.emailAddress} and role ${userRole.role}")
 
     userRoleService.requireAdmin()

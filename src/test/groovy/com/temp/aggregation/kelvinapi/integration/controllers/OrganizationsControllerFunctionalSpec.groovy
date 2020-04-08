@@ -71,6 +71,39 @@ class OrganizationsControllerFunctionalSpec extends BaseIntegrationSpec {
     response.body.lastModifiedBy
   }
 
+  @Unroll
+  void 'create organization with invalid values fails'() {
+    setup:
+    Organization update = new Organization(
+        taxId: taxId,
+        contactName: contactName,
+        contactEmail: contactEmail,
+        contactPhone: '555-555-5555',
+        contactJobTitle: 'very important person',
+        orgName: orgName,
+        sector: sector
+    )
+
+    when:
+    client.createOrganization(update)
+
+    then:
+    FeignException e = thrown(FeignException)
+    e.status() == HttpStatus.BAD_REQUEST.value()
+
+    where:
+    taxId | contactName    | contactEmail        | orgName  | sector
+    null  | 'Test Contact' | 'contact@email.com' | 'Target' | OTHER_PRIVATE_BUSINESS
+    '111' | null           | 'contact@email.com' | 'Target' | OTHER_PRIVATE_BUSINESS
+    '111' | 'Test Contact' | null                | 'Target' | OTHER_PRIVATE_BUSINESS
+    '111' | 'Test Contact' | 'contact@email.com' | null     | OTHER_PRIVATE_BUSINESS
+    '111' | 'Test Contact' | 'contact@email.com' | 'Target' | null
+    ''    | 'Test Contact' | 'contact@email.com' | 'Target' | OTHER_PRIVATE_BUSINESS
+    '111' | ''             | 'contact@email.com' | 'Target' | OTHER_PRIVATE_BUSINESS
+    '111' | 'Test Contact' | ''                  | 'Target' | OTHER_PRIVATE_BUSINESS
+    '111' | 'Test Contact' | 'contact@email.com' | ''       | OTHER_PRIVATE_BUSINESS
+  }
+
   void 'get organization'() {
     setup:
     OrganizationDTO organizationDTO = repository.save(new OrganizationDTO(

@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.WebDataBinder
 import org.springframework.web.bind.annotation.*
 
@@ -21,6 +22,7 @@ import static com.temp.aggregation.kelvinapi.domain.Role.ADMIN
 
 @RestController
 @Slf4j
+@Validated
 class OrganizationsController {
   @Autowired
   OrganizationsService service

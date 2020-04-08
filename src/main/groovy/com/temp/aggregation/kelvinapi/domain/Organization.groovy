@@ -11,7 +11,7 @@ import javax.validation.constraints.NotNull
 class Organization implements Audited {
   String id
   String authorizationCode
-  @NotNull(message = 'tax_id must not be null')
+  @NotBlank(message = 'tax_id must not be blank')
   String taxId
   @NotBlank(message = 'org_name must not be blank')
   String orgName

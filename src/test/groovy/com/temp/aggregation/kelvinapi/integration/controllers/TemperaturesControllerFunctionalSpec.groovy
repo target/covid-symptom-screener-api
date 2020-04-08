@@ -258,8 +258,7 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
 
     List<Temperature> temperatures = [
         new Temperature(
-            temperature: 98.6,
-            userId: 'test-user-a',
+            temperature: 100,
             latitude: 44.934940,
             longitude: -93.158660,
             questionAnswers: [
@@ -275,7 +274,6 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
         ),
         new Temperature(
             temperature: 100.5,
-            userId: 'test-user-b',
             latitude: 44.934941,
             longitude: -93.158661,
             questionAnswers: [
@@ -308,6 +306,63 @@ class TemperaturesControllerFunctionalSpec extends BaseIntegrationSpec {
       temperature.questionAnswers.find { it.question.id == savedQuestionA.id } &&
           temperature.questionAnswers.find { it.question.id == savedQuestionB.id }
     }
+  }
+
+  @Unroll
+  void 'can save temperatures via the API with invalid temp fails'() {
+    String orgAuthCode = 'auth1'
+    organizationRepository.save(
+        new OrganizationDTO(
+            authorizationCode: orgAuthCode,
+            taxId: '11111',
+            orgName: 'testOrg',
+            contactName: 'Joe',
+            contactEmail: 'joe@test.com',
+            approvalStatus: APPROVED,
+            sector: OTHER_PRIVATE_BUSINESS
+        )
+    )
+
+    List<Temperature> temperatures = [
+        new Temperature(
+            temperature: temp,
+            latitude: 44.934940,
+            longitude: -93.158660,
+            questionAnswers: []
+        )
+    ]
+
+    when:
+    client.saveTemperatures(orgAuthCode, temperatures)
+
+    then:
+    FeignException e = thrown(FeignException)
+    e.status() == HttpStatus.BAD_REQUEST.value()
+
+    where:
+    temp << [0, 1, 94, 106, null]
+  }
+
+  void 'can save temperatures via the API with empty list fails'() {
+    String orgAuthCode = 'auth1'
+    organizationRepository.save(
+        new OrganizationDTO(
+            authorizationCode: orgAuthCode,
+            taxId: '11111',
+            orgName: 'testOrg',
+            contactName: 'Joe',
+            contactEmail: 'joe@test.com',
+            approvalStatus: APPROVED,
+            sector: OTHER_PRIVATE_BUSINESS
+        )
+    )
+
+    when:
+    client.saveTemperatures(orgAuthCode, [])
+
+    then:
+    FeignException e = thrown(FeignException)
+    e.status() == HttpStatus.BAD_REQUEST.value()
   }
 
   @Unroll

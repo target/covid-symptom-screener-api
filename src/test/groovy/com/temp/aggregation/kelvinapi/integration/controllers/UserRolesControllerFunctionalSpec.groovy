@@ -142,6 +142,21 @@ class UserRolesControllerFunctionalSpec extends BaseIntegrationSpec {
     userRoleRepository.save(currentTestUserRole)
   }
 
+  void 'save fails for invalid user roles'() {
+    when:
+    client.createOrUpdateUserRole(new UserRole(emailAddress: email, role: role))
+
+    then:
+    FeignException e = thrown(FeignException)
+    e.status() == HttpStatus.BAD_REQUEST.value()
+
+    where:
+    email             | role
+    null              | ADMIN
+    ''                | ADMIN
+    'email@email.com' | null
+  }
+
   void 'can delete a user role'() {
     given:
     userRoleRepository.saveAll([

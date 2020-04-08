@@ -46,6 +46,11 @@ class SpringContextEventListeners {
               status: ENABLED
           ),
           new AssessmentQuestionDTO(
+              displayValue: 'A sore throat',
+              sortPriority: 35,
+              status: ENABLED
+          ),
+          new AssessmentQuestionDTO(
               displayValue: 'A new cough',
               sortPriority: 40,
               status: ENABLED
