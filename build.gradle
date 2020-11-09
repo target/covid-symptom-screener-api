@@ -37,6 +37,9 @@ dependencies {
 test {
 	useJUnitPlatform()
 	maxParallelForks = 1
+	doFirst {
+		systemProperty 'spring.profiles.active', 'integration'
+	}
 }
 
 bootJar {

@@ -20,7 +20,8 @@ google-auth:
   enabled: false
 
 authorization:
-  preauthorized-admins: douglas.lochowski.haney@gmail.com,jorge.alberto.trujillo@gmail.com,conniefritz70@gmail.com
+  # Replace the example email.
+  preauthorized-admins: example@email.com
 
 spring:
   application:
